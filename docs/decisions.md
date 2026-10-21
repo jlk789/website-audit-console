@@ -4,6 +4,8 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-10-21
 
+**Minimum Node version raised to 24** (replaces the 22.12 decision below). CI now tests Node 24 and 26 on Windows, macOS and Linux. Why: Node 22 ships npm 10, which ignores `better-sqlite3`'s bundled binary and compiles it from source; on Windows that fails without Visual Studio's C++ tools, and most users won't have them. npm 11 (Node 24 and later) uses the bundled binary. Node 22 reaches end of life in April 2027. The bundled binary uses N-API, so one file works across Node versions.
+
 **Config and data live in a home folder: `~/.webmastery-console/` by default.** It holds `config.json` and `data.db` (later also tokens and crawler storage). `--home <folder>` or `WEBMASTERY_CONSOLE_HOME` overrides it. Why: Claude Desktop starts the MCP server from a folder we don't control, so a fixed default lets it always find the data, and it keeps keys and user data out of git repos.
 
 **Schema conventions.** `STRICT` tables; ISO 8601 UTC text for times and `YYYY-MM-DD` for GSC dates; booleans as INTEGER 0/1; text UUIDs for crawl and check-run ids (matching `crawlId: string` in the check contract), integers elsewhere. Status and state columns have no `CHECK` list. Why: STRICT catches type bugs early; a `CHECK` list of allowed values can only be changed by rebuilding the table, which the additive-migrations rule forbids.

@@ -19,7 +19,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 ## Where we are
 
 - Building v0.1. M0 (scaffold) done 2026-10-21: builds, lints, type-checks and tests on Windows, macOS and Linux in CI (Node 22 and 24). Current milestone: **M1 (config, database, jobs)**.
-- Decided: npm package `webmastery-console` (private until a licence is chosen), Node 22.12 minimum.
+- Decided: npm package `webmastery-console` (private until a licence is chosen), Node 24 minimum.
 - Open decisions (see `docs/decisions.md`): Google sign-in approach (needed before M2), licence (needed by M6), MCP tool list in spec vs plan (before M5). Ask JK when a task depends on one; don't decide it yourself.
 
 ## Principles (non-negotiable)
@@ -32,7 +32,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 
 ## Stack
 
-- TypeScript, Node 22.12 or later, ESM only
+- TypeScript, Node 24 or later, ESM only
 - SQLite via `better-sqlite3` (one file, WAL mode)
 - Crawlee for crawling (Cheerio crawler in v0.1; Playwright added for JS rendering later)
 - `@modelcontextprotocol/sdk`, stdio transport

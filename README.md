@@ -35,7 +35,7 @@ It holds `config.json` (your settings) and `data.db` (the SQLite database). To u
 
 ## Developing
 
-You need Node.js 22.12 or later and Git.
+You need Node.js 24 or later and Git.
 
 ### Windows (PowerShell)
 
