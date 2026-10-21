@@ -32,7 +32,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 
 ## Stack
 
-- TypeScript, Node LTS (exact minimum to be decided), ESM only
+- TypeScript, Node 22.12 or later, ESM only
 - SQLite via `better-sqlite3` (one file, WAL mode)
 - Crawlee for crawling (Cheerio crawler in v0.1; Playwright added for JS rendering later)
 - `@modelcontextprotocol/sdk`, stdio transport

@@ -21,9 +21,9 @@ describe('cli', () => {
     const program = buildProgram()
       .exitOverride()
       .configureOutput({ writeErr: () => {} });
-    await expect(program.parseAsync(['init'], { from: 'user' })).rejects.toMatchObject({
+    await expect(program.parseAsync(['sync'], { from: 'user' })).rejects.toMatchObject({
       exitCode: 1,
-      message: expect.stringContaining('milestone M1'),
+      message: expect.stringContaining('milestone M2'),
     });
   });
 });

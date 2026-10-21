@@ -19,8 +19,8 @@ config.local.*
 tokens/
 client_secret*.json
 
-# Local app data and crawler storage
-.audit-console/
+# Local app data and crawler storage (config.json, data.db, tokens)
+.webmastery-console/
 storage/
 
 # Test artifacts
