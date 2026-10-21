@@ -4,6 +4,16 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-10-21
 
+**npm package and command name: `webmastery-console`.** The repo keeps its name. The package is `"private": true` until a licence is chosen, so it cannot be published by accident. Why: JK's choice; the name was free on npm.
+
+**Minimum Node version: 22.12.** CI tests Node 22 and 24 on Windows, macOS and Linux. Why: Node 20 reached end of life in April 2026, and commander 15 and Vitest 5 both need 22.12 or later.
+
+**TypeScript is held at 6.0.x.** Why: TypeScript 7 is out, but typescript-eslint supports only versions below 6.1. Revisit when typescript-eslint supports 7.
+
+**Build and tooling: plain `tsc` to `dist/`, ESLint with typescript-eslint, Prettier, Vitest, commander for the CLI.** Prettier skips Markdown and `package.json`. Why: no bundler keeps the build boring and ESM-only; Prettier ends style debates; docs are hand-formatted; npm rewrites `package.json` in its own layout.
+
+**Relative imports use the `.js` extension.** The check contract example now imports `'../types.js'`. Why: with ESM and `NodeNext` resolution, Node needs the extension at runtime, and TypeScript maps `.js` to the `.ts` source.
+
 **Line endings are LF everywhere.** A `.gitattributes` file stores and checks out text files with LF on every OS (except Windows scripts, which use CRLF). Why: the project is developed on Windows but used on macOS and Linux too, and mixed endings create noisy diffs.
 
 **Secrets and local data are never committed.** API keys, OAuth clients, tokens, SQLite databases and crawler storage are all covered by `.gitignore`. Any example config is committed as `.env.example` or similar, with empty values. Why: this is a public repo, and a leaked key or user database cannot be fully removed from git history.
@@ -21,6 +31,5 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 ## Open
 
 - Google sign-in approach: users bring their own OAuth client, or a shared client with Google app verification (decide before M2)
-- npm package name
-- Licence
-- Minimum Node version
+- Licence (needed by M6; the package stays private until then)
+- MCP tools: `docs/spec.md` lists 10 tools, `docs/v0.1-plan.md` ships 4, and 3 of those (`explain_finding`, `audit_status`, `run_audit`) are not in the spec (resolve before M5)

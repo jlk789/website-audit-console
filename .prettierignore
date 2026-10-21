@@ -1,0 +1,6 @@
+# Docs are hand-formatted; Prettier would re-pad every table
+*.md
+
+# npm rewrites these in its own layout
+package.json
+package-lock.json
