@@ -1,0 +1,38 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Local databases (user data must never be committed)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Secrets: API keys, OAuth clients and tokens
+.env
+.env.*
+!.env.example
+*.local.json
+config.local.*
+tokens/
+client_secret*.json
+
+# Local app data and crawler storage
+.audit-console/
+storage/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
