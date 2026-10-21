@@ -2,7 +2,24 @@
 
 A free, local-first website audit tool. It syncs Google Search Console history, crawls the site, stores everything in one SQLite file on the user's machine, runs checks, and ranks findings by value at stake. It runs from npx or Docker and works as an MCP server in Claude Desktop.
 
-The full product spec lives in the Claude Doc "Website Audit Console — Product Spec". This file and `docs/` are the build-time source of truth. When they disagree with the spec, flag it to JK rather than picking one silently.
+- Repo: https://github.com/jlk789/website-audit-console (public)
+- Local path: `C:\Users\james\Documents\Claude\Projects\website-audit-console`
+
+## Read these first
+
+| File | What it is |
+| --- | --- |
+| `docs/spec.md` | The full product spec: data sources, provider matrix, ranking, check catalogue, dashboard, MCP tools |
+| `docs/v0.1-plan.md` | What v0.1 includes, milestones M0–M6 with "done when" criteria, schema, the 31 checks |
+| `docs/check-contract.md` | The TypeScript interface every check implements, and its rules |
+| `docs/decisions.md` | Dated log of decisions and open questions |
+
+The repo is the source of truth. If these files disagree with each other, flag it to JK rather than picking one silently.
+
+## Where we are
+
+- Building v0.1. Current milestone: **M0 (scaffold)**.
+- Open decisions (see `docs/decisions.md`): Google sign-in approach (needed before M2), npm package name (needed in M0 for `package.json`), licence, minimum Node version. Ask JK when a task depends on one; don't decide it yourself.
 
 ## Principles (non-negotiable)
 
@@ -14,7 +31,7 @@ The full product spec lives in the Claude Doc "Website Audit Console — Product
 
 ## Stack
 
-- TypeScript, Node current LTS, ESM only
+- TypeScript, Node LTS (exact minimum to be decided), ESM only
 - SQLite via `better-sqlite3` (one file, WAL mode)
 - Crawlee for crawling (Cheerio crawler in v0.1; Playwright added for JS rendering later)
 - `@modelcontextprotocol/sdk`, stdio transport
@@ -37,22 +54,27 @@ src/
 test/
   fixtures/     # fixture sites and seeded databases
 docs/
-  check-contract.md
+  spec.md
   v0.1-plan.md
-  decisions.md  # dated log of decisions and why
+  check-contract.md
+  decisions.md
+.gitignore      # keys, tokens, databases, crawler storage
+.gitattributes  # LF line endings everywhere
 ```
 
 ## Working with JK
 
 - JK runs all `npm` install and `git` write commands himself. Give exact PowerShell commands, one per line, with a short note on what each does. He is rusty with git, so spell out branch, add, commit and push steps.
+- Plan before building. For each milestone, propose the plan, the files you'll create and the commands JK will run, and wait for his go-ahead.
 - JK develops on Windows. Test paths, native modules and installs on Windows first. Use `path.join`, never hard-coded `/`.
-- Record any decision that changes scope, schema or the check contract in `docs/decisions.md` with the date and reason.
+- Record any decision that changes scope, schema or the check contract in `docs/decisions.md` (newest first) with the date and reason.
+- When a milestone's "done when" criteria pass, update "Where we are" in this file.
 
 ## Rules for code
 
 - Every check follows `docs/check-contract.md` exactly. Do not invent new fields on `Finding` without updating the contract first.
 - Checks are read-only and make no network calls. Connectors fetch; checks reason over stored data.
-- Never log, print or store API keys or OAuth tokens in plain text outside the config and token store.
+- Never log, print or commit API keys, OAuth clients or tokens. Keep anything secret in paths already covered by `.gitignore`; add new patterns there before creating new secret files. Example config files use empty values.
 - Every check ships with a fixture test that proves it fires on a broken case and stays quiet on a clean one.
 - Prefer small, boring, readable code. A new contributor should understand any check in under five minutes.
 - Migrations are additive. Never drop or rename a column that holds user history.
@@ -62,3 +84,4 @@ docs/
 - Types pass, lint passes, tests pass on Windows and macOS/Linux.
 - New checks are listed in `src/checks/index.ts` and in the check table in `docs/v0.1-plan.md`.
 - User-facing behaviour changes are reflected in `README.md`.
+- Spec changes are made in `docs/spec.md` and noted in `docs/decisions.md`.
