@@ -18,7 +18,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 
 ## Where we are
 
-- Building v0.1. M0 (scaffold) done 2026-10-21: builds, lints, type-checks and tests on Windows, macOS and Linux in CI (Node 22 and 24). Current milestone: **M1 (config, database, jobs)**.
+- Building v0.1. M0 (scaffold) done 2026-10-21. M1 (config, database, jobs) done 2026-10-21: `init` writes the config and database, migrations create all v0.1 tables, and a hard-killed job resumes exactly (CI on Windows, macOS and Linux, Node 24 and 26). Current milestone: **M2 (Search Console sync)**, blocked on the Google sign-in decision.
 - Decided: npm package `webmastery-console` (private until a licence is chosen), Node 24 minimum.
 - Open decisions (see `docs/decisions.md`): Google sign-in approach (needed before M2), licence (needed by M6), MCP tool list in spec vs plan (before M5). Ask JK when a task depends on one; don't decide it yourself.
 
