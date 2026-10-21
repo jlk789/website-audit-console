@@ -18,7 +18,7 @@
     "url": "git+https://github.com/jlk789/website-audit-console.git"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').chmodSync('dist/cli/index.js', 0o755)\"",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
