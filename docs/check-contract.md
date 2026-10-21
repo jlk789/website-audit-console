@@ -133,7 +133,7 @@ export type FixAsset =
 
 ```ts
 // src/checks/redirects/temporary-redirect-with-traffic.ts
-import type { CheckDefinition } from '../types';
+import type { CheckDefinition } from '../types.js';
 
 export const temporaryRedirectWithTraffic: CheckDefinition = {
   id: 'redirects.temporary-with-traffic',

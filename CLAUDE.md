@@ -19,7 +19,8 @@ The repo is the source of truth. If these files disagree with each other, flag i
 ## Where we are
 
 - Building v0.1. Current milestone: **M0 (scaffold)**.
-- Open decisions (see `docs/decisions.md`): Google sign-in approach (needed before M2), npm package name (needed in M0 for `package.json`), licence, minimum Node version. Ask JK when a task depends on one; don't decide it yourself.
+- Decided: npm package `webmastery-console` (private until a licence is chosen), Node 22.12 minimum.
+- Open decisions (see `docs/decisions.md`): Google sign-in approach (needed before M2), licence (needed by M6), MCP tool list in spec vs plan (before M5). Ask JK when a task depends on one; don't decide it yourself.
 
 ## Principles (non-negotiable)
 
