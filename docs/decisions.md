@@ -4,6 +4,12 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-10-21
 
+**How Search Console sync works.** `connect google` copies the user's credential file into `<home>/secrets/` and stores the sign-in in `<home>/tokens/`, both readable only by the user. `sync` finds the latest day with final data, then fetches every day of the 16 months before it that has no `gsc_sync_state` row, newest first, saving each day (rows plus sync state) in one transaction. Each day makes two paged requests: page totals and query + page, capped at 50,000 rows (Google's daily limit per search type). Uses `google-auth-library` (its OAuth and JWT classes only, never auto-detection) and plain `fetch`, not the large `googleapis` package. Why: the per-day unit makes resume and incremental sync the same thing, never touching unfinished days keeps data lag out of trends, and newest-first means a partly finished backfill already holds the most useful data.
+
+**User-fixable errors fail jobs at once.** A `UserError` (bad option, expired sign-in, missing permission) fails a job without retries and is shown without a stack trace. Rate limits and server errors are retried with backoff, then the job is retried. Why: retrying an expired sign-in five times only delays the message the user needs.
+
+**Google sign-in: users bring their own credentials in v0.1, either their own OAuth client or a service account. A shared, Google-verified client comes in a later version.** Why: both work today with no Google review, and the spec already promises both. A shared client would need Google's verification for the `webmasters.readonly` scope (homepage, privacy policy, demo video, a wait of days to weeks), would show an "unverified app" warning and a 100-user cap until then, and would put every user's backfill on one project quota. It can be added later without changing anything existing users set up. Risks to handle in M2: an OAuth client left in "Testing" mode expires its sign-in after 7 days, and some organisations block service-account key files.
+
 **Minimum Node version raised to 24** (replaces the 22.12 decision below). CI now tests Node 24 and 26 on Windows, macOS and Linux. Why: Node 22 ships npm 10, which ignores `better-sqlite3`'s bundled binary and compiles it from source; on Windows that fails without Visual Studio's C++ tools, and most users won't have them. npm 11 (Node 24 and later) uses the bundled binary. Node 22 reaches end of life in April 2027. The bundled binary uses N-API, so one file works across Node versions.
 
 **Config and data live in a home folder: `~/.webmastery-console/` by default.** It holds `config.json` and `data.db` (later also tokens and crawler storage). `--home <folder>` or `WEBMASTERY_CONSOLE_HOME` overrides it. Why: Claude Desktop starts the MCP server from a folder we don't control, so a fixed default lets it always find the data, and it keeps keys and user data out of git repos.
@@ -46,6 +52,6 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## Open
 
-- Google sign-in approach: users bring their own OAuth client, or a shared client with Google app verification (decide before M2)
+- Shared, Google-verified OAuth client: when to start verification, and on which domain (after v0.1)
 - Licence (needed by M6; the package stays private until then)
 - MCP tools: `docs/spec.md` lists 10 tools, `docs/v0.1-plan.md` ships 4, and 3 of those (`explain_finding`, `audit_status`, `run_audit`) are not in the spec (resolve before M5)

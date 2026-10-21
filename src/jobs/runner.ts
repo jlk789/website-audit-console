@@ -1,4 +1,5 @@
 import type { Db } from '../db/open.js';
+import { UserError } from '../errors.js';
 import {
   claimNext,
   complete,
@@ -104,7 +105,9 @@ async function runOne(
   } catch (error) {
     if (error instanceof LeaseLostError) return 'released';
     const message = error instanceof Error ? error.message : String(error);
-    return fail(db, job, message, now()) === 'failed' ? 'failed' : 'retried';
+    // A UserError (e.g. an expired sign-in) will fail the same way every time.
+    const permanent = error instanceof UserError;
+    return fail(db, job, message, now(), permanent) === 'failed' ? 'failed' : 'retried';
   } finally {
     clearInterval(heartbeat);
   }

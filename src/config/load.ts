@@ -1,10 +1,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
+import { UserError } from '../errors.js';
 import { configSchema, type Config } from './schema.js';
 
-/** A problem the user can fix. The CLI prints the message without a stack trace. */
-export class ConfigError extends Error {}
+/** A problem with the config file or the options that build it. */
+export class ConfigError extends UserError {}
 
 /** Validates config data. `source` names where it came from, for the error message. */
 export function parseConfig(data: unknown, source: string): Config {

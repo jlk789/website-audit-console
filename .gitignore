@@ -17,6 +17,7 @@ coverage/
 *.local.json
 config.local.*
 tokens/
+secrets/
 client_secret*.json
 
 # Local app data and crawler storage (config.json, data.db, tokens)
