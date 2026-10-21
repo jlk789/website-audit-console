@@ -6,7 +6,26 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). The CLI lists its commands, but none of them work yet.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). Only `init` works so far; the other commands say which milestone they arrive in.
+
+## Getting started
+
+```bash
+webmastery-console init --site https://example.com/ --brand example
+```
+
+This writes a config file and creates the local database. `--brand` takes one or more brand terms, used later to separate brand from non-brand searches. Run `init` again with `--force` to replace the config.
+
+### Where your data lives
+
+Everything is kept in one folder on your machine:
+
+| OS | Default folder |
+| --- | --- |
+| Windows | `C:\Users\<you>\.webmastery-console\` |
+| macOS and Linux | `~/.webmastery-console/` |
+
+It holds `config.json` (your settings) and `data.db` (the SQLite database). To use a different folder, pass `--home <folder>` to any command or set the `WEBMASTERY_CONSOLE_HOME` environment variable.
 
 ## Principles
 
@@ -16,7 +35,7 @@ Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). T
 
 ## Developing
 
-You need Node.js 22.12 or later and Git.
+You need Node.js 24 or later and Git.
 
 ### Windows (PowerShell)
 
@@ -46,7 +65,7 @@ npx . --help
 | `npm run typecheck` | Type-checks `src/` and `test/` without writing files |
 | `npm run lint` | Runs ESLint and checks formatting with Prettier |
 | `npm run format` | Fixes formatting with Prettier |
-| `npm test` | Runs the Vitest suite |
+| `npm test` | Builds, then runs the Vitest suite (one test runs the compiled code in `dist/`) |
 
 ## Docs
 

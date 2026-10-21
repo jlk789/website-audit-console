@@ -11,30 +11,36 @@
     "dist"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=24"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jlk789/website-audit-console.git"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').chmodSync('dist/cli/index.js', 0o755)\"",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "npm run build && vitest run"
   },
   "dependencies": {
-    "commander": "^15.0.0"
+    "better-sqlite3": "^13.0.3",
+    "commander": "^15.0.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^22.20.5",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^24.19.2",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.0",
     "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "better-sqlite3": false
   }
 }

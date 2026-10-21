@@ -4,6 +4,22 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-10-21
 
+**Minimum Node version raised to 24** (replaces the 22.12 decision below). CI now tests Node 24 and 26 on Windows, macOS and Linux. Why: Node 22 ships npm 10, which ignores `better-sqlite3`'s bundled binary and compiles it from source; on Windows that fails without Visual Studio's C++ tools, and most users won't have them. npm 11 (Node 24 and later) uses the bundled binary. Node 22 reaches end of life in April 2027. The bundled binary uses N-API, so one file works across Node versions.
+
+**Config and data live in a home folder: `~/.webmastery-console/` by default.** It holds `config.json` and `data.db` (later also tokens and crawler storage). `--home <folder>` or `WEBMASTERY_CONSOLE_HOME` overrides it. Why: Claude Desktop starts the MCP server from a folder we don't control, so a fixed default lets it always find the data, and it keeps keys and user data out of git repos.
+
+**Schema conventions.** `STRICT` tables; ISO 8601 UTC text for times and `YYYY-MM-DD` for GSC dates; booleans as INTEGER 0/1; text UUIDs for crawl and check-run ids (matching `crawlId: string` in the check contract), integers elsewhere. Status and state columns have no `CHECK` list. Why: STRICT catches type bugs early; a `CHECK` list of allowed values can only be changed by rebuilding the table, which the additive-migrations rule forbids.
+
+**Schema changes from the v0.1 plan.** `gsc_sync_state` has one row per property, search type and *day* (not per property), holding row-cap hits and the anonymised-click share for that day. The GSC tables carry `search_type` in their primary keys. `finding_lifecycle` has `effort_hours_override`. Why: M2 must store row-cap hits and anonymised share per day; adding a column to a primary key later means rebuilding the table; the spec makes effort editable per finding, and that edit must survive across runs.
+
+**Migrations are TypeScript modules holding SQL**, applied in order inside one `IMMEDIATE` transaction and recorded in `schema_migrations`. The database migrates itself on open. Why: `tsc` does not copy `.sql` files into `dist/`, and the immediate lock stops two processes applying the same migration.
+
+**Jobs use leases and step checkpoints.** A runner claims a job with one atomic `UPDATE` and holds a 30-second lease renewed by a heartbeat. Each step writes its data and its checkpoint in one transaction, so a killed job resumes exactly from its last step. `attempts` counts starts (5 maximum) and fences writes from a runner that lost its lease; a clean stop (Ctrl+C) hands its attempt back. Why: exact resume with no external queue, and no risk of two runners writing the same job.
+
+**`better-sqlite3` may not run install scripts** (`allowScripts` in `package.json` denies it). Why: version 13 ships prebuilt binaries for Windows, macOS and Linux (x64 and arm64) inside the package. npm flags it only because it contains a `binding.gyp`, and a future npm release will block unreviewed scripts anyway; the deny records that we rely on the prebuilt binary and never compile. If a platform without a prebuilt binary is ever needed, revisit this.
+
+**`npm test` builds first.** The kill-and-resume test runs a worker in a separate Node process, which imports the compiled code in `dist/`. Why: proves resume after a real hard kill on every OS, without adding `tsx`, which would bring `esbuild` and its install script.
+
 **npm package and command name: `webmastery-console`.** The repo keeps its name. The package is `"private": true` until a licence is chosen, so it cannot be published by accident. Why: JK's choice; the name was free on npm.
 
 **Minimum Node version: 22.12.** CI tests Node 22 and 24 on Windows, macOS and Linux. Why: Node 20 reached end of life in April 2026, and commander 15 and Vitest 5 both need 22.12 or later.
