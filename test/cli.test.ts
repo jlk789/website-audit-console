@@ -5,7 +5,7 @@ import { buildProgram } from '../src/cli/program.js';
 describe('cli', () => {
   it('lists every v0.1 command in help', () => {
     const help = buildProgram().helpInformation();
-    for (const name of ['init', 'sync', 'crawl', 'audit', 'mcp']) {
+    for (const name of ['init', 'connect', 'sync', 'crawl', 'audit', 'mcp']) {
       expect(help).toContain(name);
     }
   });
@@ -21,9 +21,9 @@ describe('cli', () => {
     const program = buildProgram()
       .exitOverride()
       .configureOutput({ writeErr: () => {} });
-    await expect(program.parseAsync(['sync'], { from: 'user' })).rejects.toMatchObject({
+    await expect(program.parseAsync(['crawl'], { from: 'user' })).rejects.toMatchObject({
       exitCode: 1,
-      message: expect.stringContaining('milestone M2'),
+      message: expect.stringContaining('milestone M3'),
     });
   });
 });
