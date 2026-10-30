@@ -2,6 +2,10 @@
 
 A dated log of decisions that shape scope, schema, the check contract or how the project is run. Newest first. Each entry says what was decided and why.
 
+## 2026-10-30
+
+**The README's OAuth route now treats Testing mode as the normal starting point, with publishing optional.** Users add themselves as a test user and leave the optional Branding fields (logo, links, authorised domains) empty. Why: on the first real setup (kupka.ca), filling in those fields demanded domain verification and kept Branding from saving, which greys out **Publish app**; Testing mode worked straight away. The cost is a sign-in that expires after 7 days, which `sync` already explains. The logo and links belong to the future shared, verified client, which should live in its own Google Cloud project.
+
 ## 2026-10-21
 
 **How Search Console sync works.** `connect google` copies the user's credential file into `<home>/secrets/` and stores the sign-in in `<home>/tokens/`, both readable only by the user. `sync` finds the latest day with final data, then fetches every day of the 16 months before it that has no `gsc_sync_state` row, newest first, saving each day (rows plus sync state) in one transaction. Each day makes two paged requests: page totals and query + page, capped at 50,000 rows (Google's daily limit per search type). Uses `google-auth-library` (its OAuth and JWT classes only, never auto-detection) and plain `fetch`, not the large `googleapis` package. Why: the per-day unit makes resume and incremental sync the same thing, never touching unfinished days keeps data lag out of trends, and newest-first means a partly finished backfill already holds the most useful data.

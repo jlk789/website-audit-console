@@ -39,12 +39,14 @@ The console reads Search Console with read-only access, using credentials you cr
 ### Both routes start the same way
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project (for example "webmastery-console").
-2. Open **APIs & Services → Library**, search for **Google Search Console API**, and click **Enable**.
+2. Open the [Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com) page, check your new project is selected at the top, and click **Enable**.
 
 ### Route 1: OAuth client
 
-3. Open **Google Auth Platform** and click **Get started**. Enter an app name and your email, choose **External** as the audience, and finish.
-4. Go to **Audience** and click **Publish app**, then confirm. **Do not skip this.** While the app is in "Testing" mode, Google signs you out every 7 days and your syncs stop.
+3. Open [Google Auth Platform](https://console.cloud.google.com/auth/overview) and click **Get started**. Enter an app name (it can't contain "Google"), pick your own email as the support email, choose **External** as the audience, enter your email as the contact, and finish.
+
+   Leave the optional **Branding** fields empty: logo, home page, privacy policy, terms of service and authorised domains. Filling any of them in makes Google ask you to verify the domain, and a logo sends the app to Google for review. None of them are needed for an app only you use.
+4. Go to **Audience → Test users → Add users** and add the Google account that can see your site in Search Console.
 5. Go to **Clients → Create client**, choose **Desktop app**, click **Create**, then **Download JSON**.
 6. Run:
 
@@ -52,7 +54,9 @@ The console reads Search Console with read-only access, using credentials you cr
    webmastery-console connect google --oauth-client path/to/client_secret_XXXX.json
    ```
 
-   Your browser opens at Google's sign-in page. Because the app is yours and unverified, Google shows "Google hasn't verified this app": click **Advanced**, then **Go to (your app name)**, then **Continue**. The console only asks for read-only Search Console access.
+   Your browser opens at Google's sign-in page. Choose the account you added as a test user. Because the app is yours and unverified, Google shows "Google hasn't verified this app": click **Continue** (on some screens, **Advanced** and then **Go to (your app name)** first). The console only asks for read-only Search Console access.
+
+**Testing mode signs you out every 7 days.** While the app's publishing status is "Testing", Google ends the sign-in after 7 days. `sync` then stops with a message saying so; run `connect google` again to sign back in. To avoid this, go to **Audience** and click **Publish app**. Google only allows that once the Branding page saves, so if **Publish app** is greyed out, open **Branding**, check the app name and support email are filled in and the optional fields are empty, and click **Save**. If you plan to sync on a schedule, Route 2 avoids sign-ins altogether.
 
 ### Route 2: Service account
 
@@ -68,6 +72,8 @@ The console reads Search Console with read-only access, using credentials you cr
 ### After connecting
 
 `connect google` copies your credential file into the home folder, so you can delete the downloaded copy. It then picks the Search Console property that matches your site, preferring a domain property (`sc-domain:example.com`). If it can't tell which one you mean, it lists them; run it again with `--property "<property>"`.
+
+If it says your account can't see a matching property, the Google account you signed in with doesn't have access to the site in Search Console. Either sign in with the account that owns the property, or have that account add yours under **Settings → Users and permissions → Add user** (**Restricted** is enough).
 
 ## Syncing Search Console
 

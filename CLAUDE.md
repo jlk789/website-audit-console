@@ -18,7 +18,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 
 ## Where we are
 
-- Building v0.1. M0 (scaffold) done 2026-10-21. M1 (config, database, jobs) done 2026-10-21: `init` writes the config and database, migrations create all v0.1 tables, and a hard-killed job resumes exactly (CI on Windows, macOS and Linux, Node 24 and 26). Current milestone: **M2 (Search Console sync)**.
+- Building v0.1. M0 (scaffold) done 2026-10-21. M1 (config, database, jobs) done 2026-10-21: `init` writes the config and database, migrations create all v0.1 tables, and a hard-killed job resumes exactly (CI on Windows, macOS and Linux, Node 24 and 26). M2 (Search Console sync) done 2026-10-30: verified for real on kupka.ca (`sc-domain:kupka.ca`) with JK's own OAuth client in Testing mode; 16-month backfill of 488 days, resumed exactly after two Ctrl+C stops, re-run reports up to date. Current milestone: **M3 (crawler)**.
 - Decided: npm package `webmastery-console` (private until a licence is chosen), Node 24 minimum, Google sign-in via the user's own OAuth client or service account (shared verified client after v0.1).
 - Open decisions (see `docs/decisions.md`): licence (needed by M6), MCP tool list in spec vs plan (before M5), when to start Google verification for a shared client (after v0.1). Ask JK when a task depends on one; don't decide it yourself.
 
