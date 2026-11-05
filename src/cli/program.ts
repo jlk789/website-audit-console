@@ -133,7 +133,7 @@ export function buildProgram(): Command {
     .action(
       friendly(async (options: { all?: boolean }) => {
         const result = await runAudit({ home: home() });
-        for (const line of describeAudit(result, options.all ? Infinity : 20)) {
+        for (const line of describeAudit(result, { all: Boolean(options.all) })) {
           console.log(line);
         }
       }),

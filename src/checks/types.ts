@@ -123,6 +123,10 @@ export interface EvidenceBuilder {
   gscClicks(urls: string[], range: DateRange): EvidenceRef;
   /** A page's whole Search Console history: first and last day, clicks, impressions. */
   gscHistory(url: string): EvidenceRef;
+  /** The sitemap files that list `url`, with lastmod. */
+  sitemapEntries(url: string): EvidenceRef;
+  /** The robots.txt fetched for `origin`: its status and every line. */
+  robots(origin: string): EvidenceRef;
   /** Any other read-only query. */
   custom(table: string, sql: string, params: unknown[], label: string): EvidenceRef;
 }

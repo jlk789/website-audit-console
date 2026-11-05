@@ -5,6 +5,7 @@ import { configPath, dbPath, resolveHome } from '../../config/paths.js';
 import { openDb } from '../../db/open.js';
 import { AUDIT_JOB, auditHandler, type AuditPayload } from '../../engine/audit.js';
 import { priority } from '../../engine/rank.js';
+import type { EngineFinding } from '../../engine/run.js';
 import type { AuditResult } from '../../engine/store.js';
 import { UserError } from '../../errors.js';
 import { enqueue } from '../../jobs/queue.js';
@@ -59,8 +60,21 @@ export async function runAudit(
   }
 }
 
-/** The audit as lines of text: what it ran on, then the ranked findings. */
-export function describeAudit(result: AuditResult & { siteUrl: string }, limit: number): string[] {
+/** How many entries the printout lists without --all. */
+const TOP = 20;
+/** Without --all, a check with more findings than this shows only its top one and a count. */
+const GROUP_OVER = 3;
+
+/**
+ * The audit as lines of text: what it ran on, then the ranked findings.
+ * Unless `all` is set, the list is shortened: repetitive checks are folded
+ * into their top finding plus "and N more like this", and only the first
+ * TOP entries are listed. Only the printout changes; every finding is stored.
+ */
+export function describeAudit(
+  result: AuditResult & { siteUrl: string },
+  options: { all: boolean },
+): string[] {
   const { snapshot, siteUrl } = result;
   const sources = [
     snapshot.crawlId ? 'the latest crawl' : 'no crawl',
@@ -76,21 +90,32 @@ export function describeAudit(result: AuditResult & { siteUrl: string }, limit: 
       `${result.resolved.length} resolved since the last audit.`,
   ];
 
-  if (result.findings.length > 0) {
-    lines.push('');
-    result.findings.slice(0, limit).forEach((f, i) => {
-      const rank = f.severityFloor ? '  !' : String(i + 1).padStart(3);
-      const score = f.severityFloor ? 'FLOOR' : priority(f).toFixed(1).padStart(5);
-      lines.push(`${rank}  ${score}  ${f.status === 'new' ? 'new ' : '    '} ${f.checkId}`);
-      lines.push(`              ${f.summary}`);
-    });
-    if (result.findings.length > limit) {
-      lines.push(
-        '',
-        `${result.findings.length - limit} more. Run "audit --all" to list every finding.`,
-      );
+  const perCheck = new Map<string, number>();
+  for (const f of result.findings) perCheck.set(f.checkId, (perCheck.get(f.checkId) ?? 0) + 1);
+  const entries: { finding: EngineFinding; more: number }[] = [];
+  const folded = new Set<string>();
+  for (const finding of result.findings) {
+    const total = perCheck.get(finding.checkId)!;
+    if (options.all || total <= GROUP_OVER) {
+      entries.push({ finding, more: 0 });
+    } else if (!folded.has(finding.checkId)) {
+      folded.add(finding.checkId);
+      entries.push({ finding, more: total - 1 });
     }
   }
+  const listed = options.all ? entries : entries.slice(0, TOP);
+
+  if (listed.length > 0) lines.push('');
+  listed.forEach(({ finding: f, more }, i) => {
+    const rank = f.severityFloor ? '  !' : String(i + 1).padStart(3);
+    const score = f.severityFloor ? 'FLOOR' : priority(f).toFixed(1).padStart(5);
+    lines.push(`${rank}  ${score}  ${f.status === 'new' ? 'new ' : '    '} ${f.checkId}`);
+    lines.push(`              ${f.summary}`);
+    if (more > 0) lines.push(`              ...and ${more} more like this.`);
+  });
+  const hidden = entries.length - listed.length;
+  if (hidden > 0) lines.push('', `${hidden} more not shown.`);
+  if (hidden > 0 || folded.size > 0) lines.push('Run "audit --all" to list every finding.');
   for (const f of result.resolved) lines.push(`Resolved: ${f.checkId}: ${f.summary}`);
   if (result.skipped.length > 0) {
     lines.push('', 'Skipped:');

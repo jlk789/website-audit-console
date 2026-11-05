@@ -4,6 +4,12 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-11-05
 
+**Two more evidence helpers in the check contract (M4b):** `sitemapEntries(url)` (the sitemap files listing a URL) and `robots(origin)` (the robots.txt status and every line, as a LEFT JOIN so a file with no lines still returns its status). Why: the sitemap and robots.txt checks cite these rows; additive, like the others. JK approved.
+
+**`audit` folds repetitive checks in its printout.** Without `--all`, a check with more than 3 findings shows its top finding and "...and N more like this", and the list stops at 20 entries. Every finding is still stored separately. Why: on kupka.ca, `indexing.indexable-not-in-sitemap` finds 13 tag pages, which buried the other findings; keeping one finding per page keeps keys, evidence and fixes per page. JK approved.
+
+**`indexing.robots-blocks-site` judges robots.txt as Googlebot.** It reuses the crawler's RFC 9309 matcher with the `googlebot` token, so a site that blocks only this crawler is not flagged. A robots.txt that answers 5xx or 429, or not at all, is flagged with lower certainty (0.8), since Google retries before treating the site as blocked.
+
 **M4 is built in three PRs:** M4a (contract changes, engine, `audit`, and the 12 redirects and hosts-and-404s checks), M4b (14 indexing checks), M4c (5 search-performance checks). Why: 31 checks in one PR is too much to review, and M4a proves the whole pipeline on its own. JK's choice.
 
 **Check contract changes.** (1) `CheckDefinition.thresholds` holds each check's default thresholds; config overrides them with `"checks": { "<id>": { "<name>": n } }`, and an unknown id or name stops the audit. Why: rule 7 put numbers in thresholds, but the contract had nowhere to declare their defaults. (2) `snapshot.propertyId`, and a rule to filter Search Console tables by it. Why: the example joined Search Console data with no property filter. (3) `ReadOnlyDb` and `EvidenceBuilder` are now defined. (4) A new capability, `brand-terms`. Why: the non-brand check can't work without brand terms and should be skipped with a reason, not return nothing. (5) Rule 2 now says the engine runs every evidence query (read-only, must run, at least one returns rows) and rule 4 says to use `metric: 'none'` without Search Console rather than claiming 0 clicks. JK approved all five.
