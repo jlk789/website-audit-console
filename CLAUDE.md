@@ -34,7 +34,7 @@ The repo is the source of truth. If these files disagree with each other, flag i
 
 - TypeScript, Node 24 or later, ESM only
 - SQLite via `better-sqlite3` (one file, WAL mode)
-- Crawlee for crawling (Cheerio crawler in v0.1; Playwright added for JS rendering later)
+- Our own small crawler: Node's `fetch` (redirects followed by hand, hop by hop) plus `cheerio` for parsing; Playwright added directly for JS rendering later (Crawlee dropped 2026-10-30, see `docs/decisions.md`)
 - `@modelcontextprotocol/sdk`, stdio transport
 - `zod` for config and data validation
 - Vitest for tests

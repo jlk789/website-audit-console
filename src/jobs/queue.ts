@@ -72,9 +72,11 @@ export function getJob(db: Db, id: number): Job | undefined {
 /**
  * Takes the oldest job that is queued, or running with an expired lease
  * (its runner was killed), and leases it to the caller. One UPDATE, so two
- * runners can never claim the same job.
+ * runners can never claim the same job. If `types` is given, only jobs of
+ * those types are taken; others are left for a runner that can handle them.
  */
-export function claimNext(db: Db, leaseMs: number, now: Date): Job | undefined {
+export function claimNext(db: Db, leaseMs: number, now: Date, types?: string[]): Job | undefined {
+  const typeList = types ? JSON.stringify(types) : null;
   const row = db
     .prepare(
       `UPDATE jobs
@@ -84,12 +86,14 @@ export function claimNext(db: Db, leaseMs: number, now: Date): Job | undefined {
               started_at = COALESCE(started_at, ?)
         WHERE id = (
           SELECT id FROM jobs
-           WHERE state = 'queued' OR (state = 'running' AND lease_until < ?)
+           WHERE (state = 'queued' OR (state = 'running' AND lease_until < ?))
+             AND (? IS NULL OR type IN (SELECT value FROM json_each(?)))
            ORDER BY id
            LIMIT 1)
        RETURNING *`,
     )
-    .get(leaseUntil(now, leaseMs), now.toISOString(), now.toISOString()) as JobRow | undefined;
+    .get(leaseUntil(now, leaseMs), now.toISOString(), now.toISOString(), typeList, typeList) as
+    JobRow | undefined;
   return row && toJob(row);
 }
 

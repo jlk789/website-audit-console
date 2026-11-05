@@ -42,7 +42,10 @@ export interface RunSummary {
   released: number;
 }
 
-/** Runs queued jobs one at a time until the queue is empty or `signal` aborts. */
+/**
+ * Runs queued jobs one at a time until none is left or `signal` aborts. Only
+ * jobs with a handler here are claimed, so `crawl` never touches a paused sync.
+ */
 export async function runJobs(
   db: Db,
   handlers: Record<string, JobHandler>,
@@ -54,17 +57,14 @@ export async function runJobs(
   const summary: RunSummary = { completed: 0, retried: 0, failed: 0, released: 0 };
 
   while (!signal.aborted) {
-    const job = claimNext(db, leaseMs, now());
+    const job = claimNext(db, leaseMs, now(), Object.keys(handlers));
     if (!job) break;
 
-    const handler = handlers[job.type];
     if (job.attempts > job.maxAttempts) {
       fail(db, job, `Gave up after ${job.maxAttempts} attempts.`, now(), true);
       summary.failed++;
-    } else if (!handler) {
-      fail(db, job, `No handler for job type "${job.type}".`, now(), true);
-      summary.failed++;
     } else {
+      const handler = handlers[job.type] as JobHandler;
       summary[await runOne(db, job, handler, leaseMs, now, signal)]++;
     }
   }

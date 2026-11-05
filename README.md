@@ -6,7 +6,7 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google` and `sync` work so far; the other commands say which milestone they arrive in.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync` and `crawl` work so far; the other commands say which milestone they arrive in.
 
 ## Getting started
 
@@ -89,6 +89,27 @@ For each day the console also stores:
 
 - **Anonymised share:** the share of clicks Search Console hides by anonymising rare queries. Query-level findings are less certain on days where it is high.
 - **Row cap:** Search Console keeps at most 50,000 query rows per day. Days that reach the cap are flagged, because some queries are missing.
+
+## Crawling the site
+
+```bash
+webmastery-console crawl
+```
+
+The crawler starts at your site URL and follows links on the same host (same scheme, host and port), breadth-first, up to `crawl.maxPages` pages (10,000 by default; `--max-pages <n>` sets the limit for a new crawl). It also visits every URL in your sitemaps and every page with Search Console history, so pages that nothing links to anymore are checked too.
+
+For each URL it stores the status code, every redirect hop, title, H1, meta robots, X-Robots-Tag, canonical, word count, link depth, whether the page is in a sitemap, whether it is indexable, and every link with its anchor text, nofollow and position (navigation, body or footer).
+
+It behaves like a polite search engine crawler:
+
+- It identifies itself as `webmastery-console/<version> (+https://github.com/jlk789/website-audit-console)`.
+- It obeys robots.txt (rules for `webmastery-console`, otherwise for `*`). Blocked URLs are recorded as blocked, not fetched. If robots.txt answers with a server error, crawlers must treat the whole site as blocked, and the console does too.
+- It does not follow `rel="nofollow"` links or links on pages marked `nofollow`, though it records them.
+- It makes 2 requests at a time (`crawl.concurrency` in the config, up to 16), waits up to 20 seconds per request, reads at most 5 MB of a page, and retries a network error or server error once.
+
+It also sends a few test requests: your homepage on the other scheme and on the www or non-www host, a made-up URL (to see whether missing pages answer 404), and the slash and no-slash version of up to 20 top pages.
+
+Press **Ctrl+C** to stop after the current batch of pages; run `crawl` again to continue. Use `crawl --new` to abandon an unfinished crawl and start over. Each finished crawl is kept, so later versions can show what changed between crawls.
 
 ## Principles
 
