@@ -24,6 +24,11 @@ import { internalLinksToRedirects } from './redirects/internal-links-to-redirect
 import { loop } from './redirects/loop.js';
 import { temporaryWithTraffic } from './redirects/temporary-with-traffic.js';
 import { toError } from './redirects/to-error.js';
+import { cannibalisation } from './search-performance/cannibalisation.js';
+import { ctrErosion } from './search-performance/ctr-erosion.js';
+import { nonbrandDeclineHidden } from './search-performance/nonbrand-decline-hidden.js';
+import { strikingDistance } from './search-performance/striking-distance.js';
+import { trafficDecay } from './search-performance/traffic-decay.js';
 import type { CheckDefinition } from './types.js';
 
 /** Every check `audit` runs. Keep in step with the check table in docs/v0.1-plan.md. */
@@ -58,4 +63,10 @@ export const checks: CheckDefinition[] = [
   notFoundWithHistory,
   soft404,
   serverErrors,
+  // Search performance
+  trafficDecay,
+  ctrErosion,
+  strikingDistance,
+  cannibalisation,
+  nonbrandDeclineHidden,
 ];

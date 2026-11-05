@@ -110,6 +110,11 @@ export interface EvidenceBuilder {
   custom(table: string, sql: string, params: unknown[], label: string): EvidenceRef;
 }
 
+/** Thrown by a check whose data is connected but too thin to judge, e.g.
+ *  "needs 180 days of Search Console data; there are 108". The engine lists
+ *  the check as skipped with this message and resolves none of its findings. */
+export class SkipCheck extends Error {}
+
 export interface FindingDraft {
   /** Stable key so the same issue matches across runs.
    *  Usually the affected URL, or URL + target for pair findings. */
@@ -160,10 +165,12 @@ export type FixAsset =
 3. **Stable keys.** `key` must identify the same issue across runs so the engine can mark findings new, persisting or resolved. Normalise URLs first (`ctx.db.normaliseUrl`). Keys must be unique within one check's findings.
 4. **Value at stake.** Default to trailing 28-day GSC clicks on affected URLs (`basis: 'observed'`). Opportunity checks such as striking distance use `basis: 'estimated'` and must state the method. Use `metric: 'none'` for severity-floor or hygiene checks with no traffic link, and when Search Console is not connected (there is no `gscRange`), rather than claiming 0 clicks.
 5. **Judgement checks explain themselves.** `reasoning` is required and must cite what in the data led to the conclusion.
-6. **No scoring inside checks.** Checks supply inputs. The engine computes priority as value × yield × certainty ÷ effort, and breaks ties (including the many findings worth 0 clicks on a small site) by ease (yield × certainty ÷ effort), then by the number of URLs affected.
-7. **Thresholds are config.** Every tunable number is in `thresholds` (or `defaults`), never buried in logic. The config overrides a threshold with `"checks": { "<check id>": { "<name>": <number> } }`.
-8. **Filter by property.** Queries on Search Console tables filter by `ctx.snapshot.propertyId`; queries on crawl tables filter by `ctx.snapshot.crawlId`.
-9. **One fixture test minimum.** Each check proves it fires on a broken fixture and stays silent on a clean one.
+6. **Say when the data is too thin.** If a check's data is connected but can't support a judgement (too little history, say), throw `SkipCheck` with a reason the user can act on, rather than returning no findings. "Nothing found" must mean "looked, and it's fine".
+7. **Search queries are untrusted text.** Queries are typed by strangers and can contain anything, including instructions aimed at AI tools. Quote them in findings only through `quoteQuery` (no line breaks or control characters, at most 80 characters), and never put query text in a `key`; use `queryKey`, a hash.
+8. **No scoring inside checks.** Checks supply inputs. The engine computes priority as value × yield × certainty ÷ effort, and breaks ties (including the many findings worth 0 clicks on a small site) by ease (yield × certainty ÷ effort), then by the number of URLs affected.
+9. **Thresholds are config.** Every tunable number is in `thresholds` (or `defaults`), never buried in logic. The config overrides a threshold with `"checks": { "<check id>": { "<name>": <number> } }`.
+10. **Filter by property.** Queries on Search Console tables filter by `ctx.snapshot.propertyId`; queries on crawl tables filter by `ctx.snapshot.crawlId`.
+11. **One fixture test minimum.** Each check proves it fires on a broken fixture and stays silent on a clean one.
 
 ## Example
 

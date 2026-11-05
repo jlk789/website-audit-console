@@ -54,10 +54,11 @@ describe('redirects and hosts-and-404s checks', () => {
     expect(Object.keys(expected).sort()).toEqual(ids.sort());
   });
 
-  it('runs every check without skipping or failing', () => {
+  it('runs every check in this group without skipping or failing', () => {
     expect(brokenResult.errors).toEqual([]);
-    expect(brokenResult.skipped).toEqual([]);
     expect(cleanResult.errors).toEqual([]);
+    const ours = Object.keys(expected);
+    expect(brokenResult.skipped.filter((s) => ours.includes(s.checkId))).toEqual([]);
   });
 
   for (const [checkId, keys] of Object.entries(expected)) {

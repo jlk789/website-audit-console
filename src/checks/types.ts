@@ -131,6 +131,13 @@ export interface EvidenceBuilder {
   custom(table: string, sql: string, params: unknown[], label: string): EvidenceRef;
 }
 
+/**
+ * Thrown by a check whose data is connected but not enough to judge, e.g.
+ * "needs 180 days of Search Console data; you have 108". The engine lists the
+ * check as skipped with this message, and resolves none of its earlier findings.
+ */
+export class SkipCheck extends Error {}
+
 export interface FindingDraft {
   /** Stable key so the same issue matches across runs.
    *  Usually the affected URL, or URL + target for pair findings. */

@@ -6,7 +6,7 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs 26 of the 31 v0.1 checks); `mcp` says which milestone it arrives in.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs all 31 v0.1 checks); `mcp` says which milestone it arrives in.
 
 ## Getting started
 
@@ -122,7 +122,8 @@ webmastery-console audit
 - **Priority** is value at stake × expected yield × certainty ÷ effort hours. Value at stake is the page's clicks in the last 28 days, so a broken page with traffic outranks a tidy-up. Findings worth 0 clicks are ordered by how quick and likely the fix is.
 - **Severity floor.** Site-breaking problems are marked `!` and always listed first.
 - **New, persisting, resolved.** Each finding is compared with the last audit that ran the same check. A check that was skipped (for example because Search Console was disconnected) never marks anything resolved.
-- **Skipped checks.** A check that needs data you have not connected is listed as skipped, with what to do. Nothing errors.
+- **Skipped checks.** A check that needs data you have not connected, or more history than you have (the 90-day comparisons need 180 days of Search Console data), is listed as skipped, with the reason. Nothing errors, and a skipped check never marks its earlier findings resolved.
+- **Search queries are quoted short.** Queries are typed by strangers and can contain anything, so findings quote at most 80 characters of a query, on one line. The full text stays in the database.
 - **Evidence.** Every finding is saved with the queries that reproduce its numbers.
 
 Checks have thresholds you can change in `config.json`, for example:

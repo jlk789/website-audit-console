@@ -8,6 +8,7 @@ import type {
   ValueAtStake,
 } from '../checks/types.js';
 import type { Config } from '../config/schema.js';
+import { SkipCheck } from '../checks/types.js';
 import { UserError, messageOf } from '../errors.js';
 import { evidenceBuilder, readOnlyDb } from './context.js';
 import { priority, type Scored } from './rank.js';
@@ -97,7 +98,9 @@ export async function runChecks(
       });
       outcomes.push({ check, status: 'ran', findings });
     } catch (error) {
-      outcomes.push({ check, status: 'error', reason: messageOf(error), findings: [] });
+      // A check that says its data is too thin to judge is skipped, not failed.
+      const status = error instanceof SkipCheck ? 'skipped' : 'error';
+      outcomes.push({ check, status, reason: messageOf(error), findings: [] });
     }
   }
   return outcomes;
