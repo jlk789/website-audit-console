@@ -2,6 +2,18 @@
 
 A dated log of decisions that shape scope, schema, the check contract or how the project is run. Newest first. Each entry says what was decided and why.
 
+## 2026-11-06
+
+**Checks can say "not enough data": `SkipCheck`** (check contract change, rule 6). A check whose data is connected but too thin throws `SkipCheck` with a reason; the engine lists it as skipped, like a missing data source, so it resolves nothing. Why: kupka.ca has 108 days of Search Console data, and the 90-vs-90-day checks need 180; returning no findings would look exactly like "all fine". JK approved.
+
+**Comparison windows for search performance.** `traffic-decay` and `nonbrand-decline-hidden` compare the last 90 days with the 90 before; `ctr-erosion` compares 28 with 28; `striking-distance` and `cannibalisation` look at the last 28 days. Each window is a threshold (`windowDays`), so a young site can shorten it. Why: one 28-day window is too noisy to call a decline, but CTR shifts show up within weeks. JK approved.
+
+**Search query text is untrusted** (check contract rule 7). Findings quote queries through `quoteQuery`: line breaks and control characters removed, at most 80 characters. Keys use `queryKey`, a hash, never the text. The full text stays in the database and the evidence. Why: kupka.ca's real Search Console data holds a 731-character "query" that is a set of instructions aimed at an AI; once M5 hands findings to Claude Desktop, query text is a prompt-injection route. M5 must also mark query text as untrusted data when the MCP tools return it. JK approved.
+
+**Certainty for query-level findings falls with the anonymised share.** `striking-distance`, `cannibalisation` and `nonbrand-decline-hidden` use certainty × (1 − `anonymisedPenalty` × share), where share is the period's anonymised click share (at least 0.5 if a day hit the row cap) and `anonymisedPenalty` defaults to 0.5. Why: the spec discounts certainty when much of the query data is hidden; page-level checks use page totals, which include anonymised clicks, so they need no discount.
+
+**Striking distance values the gain at the site's own top-3 click-through rate** (last 90 days, positions 1–3), or at a default of 15% (`defaultTopCtr`) when the site has fewer than 100 clicks there. Why: a published industry curve would be a number no stored data can back; the site's own curve can be, and the default is a stated, overridable assumption in the method text.
+
 ## 2026-11-05
 
 **Two more evidence helpers in the check contract (M4b):** `sitemapEntries(url)` (the sitemap files listing a URL) and `robots(origin)` (the robots.txt status and every line, as a LEFT JOIN so a file with no lines still returns its status). Why: the sitemap and robots.txt checks cite these rows; additive, like the others. JK approved.
@@ -89,3 +101,4 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 - Shared, Google-verified OAuth client: when to start verification, and on which domain (after v0.1)
 - Licence (needed by M6; the package stays private until then)
 - MCP tools: `docs/spec.md` lists 10 tools, `docs/v0.1-plan.md` ships 4, and 3 of those (`explain_finding`, `audit_status`, `run_audit`) are not in the spec (resolve before M5)
+- M5 must mark search-query text (and other page text from the crawl) as untrusted data when MCP tools return findings, so Claude treats it as data, not instructions (see 2026-11-06)

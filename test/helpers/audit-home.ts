@@ -20,9 +20,9 @@ export interface GscRow {
 }
 
 /** A temp home with a site set up, ready to crawl, seed and audit. */
-export function auditHome(siteUrl: string) {
+export function auditHome(siteUrl: string, brand: string[] = []) {
   const temp = makeTempHome();
-  runInit({ site: siteUrl, home: temp.home });
+  runInit({ site: siteUrl, brand, home: temp.home });
 
   const withDb = <T>(work: (db: Db) => T): T => {
     const db = openDb(dbPath(temp.home));

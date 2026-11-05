@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { CheckContext, CheckDefinition, FindingDraft } from '../src/checks/types.js';
+import {
+  SkipCheck,
+  type CheckContext,
+  type CheckDefinition,
+  type FindingDraft,
+} from '../src/checks/types.js';
 import { readConfig, writeConfig } from '../src/config/load.js';
 import { configPath } from '../src/config/paths.js';
 import { compareFindings, type Scored } from '../src/engine/rank.js';
@@ -191,6 +196,26 @@ describe('audit engine', () => {
     setBrand(['example']);
     const back = await site.audit([check]);
     expect(back.findings.map((f) => f.status)).toEqual(['persisting']);
+  });
+
+  it('lists a check that throws SkipCheck as skipped, resolving nothing', async () => {
+    let enoughData = true;
+    const check = fakeCheck('redirects.data-hungry', () => {
+      if (!enoughData) throw new SkipCheck('needs 180 days of data; you have 108');
+      return [draft('a')];
+    });
+
+    await site.audit([check]);
+    enoughData = false;
+    const thin = await site.audit([check]);
+    expect(thin.skipped).toEqual([
+      { checkId: 'redirects.data-hungry', reason: 'needs 180 days of data; you have 108' },
+    ]);
+    expect(thin.errors).toEqual([]);
+    expect(thin.resolved).toEqual([]);
+
+    enoughData = true;
+    expect((await site.audit([check])).findings.map((f) => f.status)).toEqual(['persisting']);
   });
 
   it('tracks the lifecycle: open, fixed, and open again', async () => {
