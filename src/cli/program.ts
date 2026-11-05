@@ -6,12 +6,8 @@ import { describeAudit, runAudit } from './commands/audit.js';
 import { runConnectGoogle } from './commands/connect.js';
 import { runCrawl } from './commands/crawl.js';
 import { runInit } from './commands/init.js';
+import { runMcp } from './commands/mcp.js';
 import { runSync } from './commands/sync.js';
-
-/** Commands not built yet. Each one says which milestone it lands in. */
-const stubs = [
-  { name: 'mcp', description: 'Start the MCP server for Claude Desktop', milestone: 'M5' },
-];
 
 export function buildProgram(): Command {
   const program = new Command()
@@ -139,14 +135,12 @@ export function buildProgram(): Command {
       }),
     );
 
-  for (const { name, description, milestone } of stubs) {
-    program
-      .command(name)
-      .description(description)
-      .action(() => {
-        program.error(`"${name}" is not implemented yet (milestone ${milestone}).`);
-      });
-  }
+  program
+    .command('mcp')
+    .description(
+      'Start the MCP server for Claude Desktop (it talks over standard input and output)',
+    )
+    .action(friendly(() => runMcp({ home: home() })));
 
   return program;
 }

@@ -6,7 +6,7 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs all 31 v0.1 checks); `mcp` says which milestone it arrives in.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl`, `audit` (all 31 v0.1 checks) and `mcp` (six tools for Claude Desktop) work so far.
 
 ## Getting started
 
@@ -133,6 +133,36 @@ Checks have thresholds you can change in `config.json`, for example:
 ```
 
 An unknown check or threshold name stops the audit with a message listing the valid ones.
+
+## Using it in Claude Desktop
+
+`webmastery-console mcp` starts an MCP server that Claude Desktop runs for you. It reads the same home folder as the commands above, so run `init`, `connect google`, `sync`, `crawl` and `audit` first.
+
+Add it to Claude Desktop's config file (Settings → Developer → Edit Config; on Windows the file is `%APPDATA%\Claude\claude_desktop_config.json`), then quit and restart Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "webmastery-console": {
+      "command": "npx",
+      "args": ["-y", "webmastery-console", "mcp"]
+    }
+  }
+}
+```
+
+Until the package is published, point at your local build instead: `"command": "node"` and `"args": ["C:\\path\\to\\website-audit-console\\dist\\cli\\index.js", "mcp"]`. Add `"--home", "<folder>"` before `"mcp"` if your data is not in `~/.webmastery-console`.
+
+| Tool | What to ask |
+| --- | --- |
+| `whats_wrong` | "What's wrong with my site?" Top findings, severity floor first |
+| `explain_finding` | "Tell me more about that 404." Evidence rows, reasoning and the drafted fix |
+| `plan_sprint` | "I have 3 hours. What should I fix?" |
+| `audit_status` | "How fresh is the data?" Including skipped checks and why |
+| `run_audit` | "Refresh the audit." Sync, crawl and audit in the background; ask for the status to follow it |
+| `query_data` | Anything else, as one read-only SQL query. Writes are refused |
+
+Search queries and page text are written by strangers and can contain instructions aimed at an AI. Every reply puts that text in a marked block and tells Claude to treat it as data only.
 
 ## Principles
 

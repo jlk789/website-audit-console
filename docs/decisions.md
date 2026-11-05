@@ -4,6 +4,16 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 ## 2026-11-06
 
+**v0.1 ships six MCP tools** (resolves the open question): `whats_wrong`, `explain_finding`, `plan_sprint`, `query_data`, `audit_status` and `run_audit`. The spec's tool table gains `explain_finding`, `audit_status` and `run_audit` and marks which tools ship in v0.1; the other spec tools wait for the data they need (fix lifecycle, logs, report, update annotations). Why: `plan_sprint` and `query_data` are cheap with data already stored and answer common questions; `draft_fix` is covered for now by `explain_finding`, which returns any fix a finding has. JK chose this (option B).
+
+**MCP replies mark third-party text as untrusted** (resolves the open item). Each reply keeps our own words (dates, counts, check descriptions) outside, and puts findings, evidence rows, query results, skip reasons and progress lines in an `<untrusted-data source="...">` block as JSON. Every `<` inside is written as `\u003c` (still valid JSON for the same text), so nothing can close the block early. The server's instructions and the block itself tell Claude to treat it as data, never as instructions. Why: findings quote search queries and page text, and `query_data` can return the full 788-character instruction-style "query" in kupka.ca's data.
+
+**`query_data` is read-only three ways:** a read-only connection, `PRAGMA query_only`, and only a single statement that returns rows and changes nothing (so `ATTACH`, writes and `PRAGMA` writes are refused). Results stop at a row limit (default 100, at most 500). Known limit: a very slow query cannot be interrupted and holds the server until it finishes. Why: Claude writes this SQL, so the database must be safe from it by construction.
+
+**`run_audit` runs in the background inside the MCP server**, through the same job queue as the CLI, and returns at once; `audit_status` reports its progress. One run at a time; if Claude Desktop closes mid-way, the current step stops cleanly and the next run resumes it. The MCP server writes nothing but protocol to standard output; progress goes to standard error. Why: a sync or crawl takes minutes and tool calls time out; standard output carries the MCP connection.
+
+**`audit_status` gives both the synced days and the first day with search data.** Why: kupka.ca has 494 synced days but search data only from 2026-07-19, which is why the 90-day checks say "there are 108"; showing only the synced count would contradict the skip reason.
+
 **Checks can say "not enough data": `SkipCheck`** (check contract change, rule 6). A check whose data is connected but too thin throws `SkipCheck` with a reason; the engine lists it as skipped, like a missing data source, so it resolves nothing. Why: kupka.ca has 108 days of Search Console data, and the 90-vs-90-day checks need 180; returning no findings would look exactly like "all fine". JK approved.
 
 **Comparison windows for search performance.** `traffic-decay` and `nonbrand-decline-hidden` compare the last 90 days with the 90 before; `ctr-erosion` compares 28 with 28; `striking-distance` and `cannibalisation` look at the last 28 days. Each window is a threshold (`windowDays`), so a young site can shorten it. Why: one 28-day window is too noisy to call a decline, but CTR shifts show up within weeks. JK approved.
@@ -100,5 +110,3 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 - Shared, Google-verified OAuth client: when to start verification, and on which domain (after v0.1)
 - Licence (needed by M6; the package stays private until then)
-- MCP tools: `docs/spec.md` lists 10 tools, `docs/v0.1-plan.md` ships 4, and 3 of those (`explain_finding`, `audit_status`, `run_audit`) are not in the spec (resolve before M5)
-- M5 must mark search-query text (and other page text from the crawl) as untrusted data when MCP tools return findings, so Claude treats it as data, not instructions (see 2026-11-06)

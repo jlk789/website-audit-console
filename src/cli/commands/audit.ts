@@ -4,8 +4,8 @@ import { readConfig } from '../../config/load.js';
 import { configPath, dbPath, resolveHome } from '../../config/paths.js';
 import { openDb } from '../../db/open.js';
 import { AUDIT_JOB, auditHandler, type AuditPayload } from '../../engine/audit.js';
+import { foldByCheck } from '../../engine/fold.js';
 import { priority } from '../../engine/rank.js';
-import type { EngineFinding } from '../../engine/run.js';
 import type { AuditResult } from '../../engine/store.js';
 import { UserError } from '../../errors.js';
 import { enqueue } from '../../jobs/queue.js';
@@ -90,19 +90,8 @@ export function describeAudit(
       `${result.resolved.length} resolved since the last audit.`,
   ];
 
-  const perCheck = new Map<string, number>();
-  for (const f of result.findings) perCheck.set(f.checkId, (perCheck.get(f.checkId) ?? 0) + 1);
-  const entries: { finding: EngineFinding; more: number }[] = [];
-  const folded = new Set<string>();
-  for (const finding of result.findings) {
-    const total = perCheck.get(finding.checkId)!;
-    if (options.all || total <= GROUP_OVER) {
-      entries.push({ finding, more: 0 });
-    } else if (!folded.has(finding.checkId)) {
-      folded.add(finding.checkId);
-      entries.push({ finding, more: total - 1 });
-    }
-  }
+  const entries = foldByCheck(result.findings, options.all ? Infinity : GROUP_OVER);
+  const folded = entries.filter((e) => e.more > 0);
   const listed = options.all ? entries : entries.slice(0, TOP);
 
   if (listed.length > 0) lines.push('');
@@ -115,7 +104,7 @@ export function describeAudit(
   });
   const hidden = entries.length - listed.length;
   if (hidden > 0) lines.push('', `${hidden} more not shown.`);
-  if (hidden > 0 || folded.size > 0) lines.push('Run "audit --all" to list every finding.');
+  if (hidden > 0 || folded.length > 0) lines.push('Run "audit --all" to list every finding.');
   for (const f of result.resolved) lines.push(`Resolved: ${f.checkId}: ${f.summary}`);
   if (result.skipped.length > 0) {
     lines.push('', 'Skipped:');
