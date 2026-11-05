@@ -62,6 +62,24 @@ export function evidenceBuilder(propertyId: number, crawlId?: string): EvidenceB
       params: [propertyId, url],
       label: `Search Console history of ${url}`,
     }),
+    sitemapEntries: (url) => ({
+      table: 'sitemap_urls',
+      sql: `SELECT sitemap_url, url, lastmod FROM sitemap_urls
+             WHERE crawl_id = ? AND url = ? ORDER BY sitemap_url`,
+      params: [crawl, url],
+      label: `Sitemaps listing ${url}`,
+    }),
+    // A LEFT JOIN, so a file with no lines (or a 5xx) still returns its status row.
+    robots: (origin) => ({
+      table: 'robots_files',
+      sql: `SELECT f.origin, f.status, f.fetch_error, r.line_no, r.user_agent, r.directive, r.value
+              FROM robots_files f
+              LEFT JOIN robots_rules r ON r.crawl_id = f.crawl_id AND r.host = f.origin
+             WHERE f.crawl_id = ? AND f.origin = ?
+             ORDER BY r.line_no`,
+      params: [crawl, origin],
+      label: `robots.txt for ${origin}`,
+    }),
     custom: (table, sql, params, label) => ({ table, sql, params, label }),
   };
 }

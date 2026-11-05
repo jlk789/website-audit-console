@@ -105,6 +105,8 @@ export interface EvidenceBuilder {
   linksTo(url: string): EvidenceRef;                         // internal links pointing at url
   gscClicks(urls: string[], range: DateRange): EvidenceRef;  // clicks and impressions over range
   gscHistory(url: string): EvidenceRef;                      // first and last day, clicks, impressions
+  sitemapEntries(url: string): EvidenceRef;                  // sitemap files that list url
+  robots(origin: string): EvidenceRef;                       // robots.txt status and every line
   custom(table: string, sql: string, params: unknown[], label: string): EvidenceRef;
 }
 

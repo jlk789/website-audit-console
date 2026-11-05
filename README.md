@@ -6,7 +6,7 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs 12 of the 31 v0.1 checks); `mcp` says which milestone it arrives in.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs 26 of the 31 v0.1 checks); `mcp` says which milestone it arrives in.
 
 ## Getting started
 
@@ -117,7 +117,7 @@ Press **Ctrl+C** to stop after the current batch of pages; run `crawl` again to 
 webmastery-console audit
 ```
 
-`audit` runs every check against the latest finished crawl and the last 28 days of Search Console data (ending at the newest synced day, because Search Console lags by a few days), then prints the findings in priority order. `audit --all` lists every finding instead of the top 20.
+`audit` runs every check against the latest finished crawl and the last 28 days of Search Console data (ending at the newest synced day, because Search Console lags by a few days), then prints the findings in priority order. To keep the list readable, a check with more than 3 findings shows its top one and "...and N more like this", and the list stops at 20 entries. `audit --all` lists every finding.
 
 - **Priority** is value at stake × expected yield × certainty ÷ effort hours. Value at stake is the page's clicks in the last 28 days, so a broken page with traffic outranks a tidy-up. Findings worth 0 clicks are ordered by how quick and likely the fix is.
 - **Severity floor.** Site-breaking problems are marked `!` and always listed first.
