@@ -7,6 +7,7 @@ import { makeTempHome } from './helpers/temp-home.js';
 
 const v01Tables = [
   'check_runs',
+  'crawl_queue',
   'crawls',
   'finding_evidence',
   'finding_lifecycle',
@@ -19,8 +20,10 @@ const v01Tables = [
   'pages',
   'properties',
   'redirect_hops',
+  'robots_files',
   'robots_rules',
   'sitemap_urls',
+  'sitemaps',
 ];
 
 describe('database', () => {

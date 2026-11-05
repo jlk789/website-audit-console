@@ -1,19 +1,14 @@
-import { readFileSync } from 'node:fs';
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import open from 'open';
 import { UserError } from '../errors.js';
+import { version } from '../version.js';
 import { runConnectGoogle } from './commands/connect.js';
+import { runCrawl } from './commands/crawl.js';
 import { runInit } from './commands/init.js';
 import { runSync } from './commands/sync.js';
 
-// Same relative path from src/cli/ and dist/cli/.
-const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
-  version: string;
-};
-
 /** Commands not built yet. Each one says which milestone it lands in. */
 const stubs = [
-  { name: 'crawl', description: 'Crawl the site', milestone: 'M3' },
   { name: 'audit', description: 'Run checks and rank findings', milestone: 'M4' },
   { name: 'mcp', description: 'Start the MCP server for Claude Desktop', milestone: 'M5' },
 ];
@@ -24,10 +19,26 @@ export function buildProgram(): Command {
     .description(
       'Local-first website audit: Search Console history, crawl, checks and ranked findings.',
     )
-    .version(pkg.version)
+    .version(version)
     .option('--home <folder>', 'folder for config and data (default: ~/.webmastery-console)');
 
   const home = () => program.opts<{ home?: string }>().home;
+
+  /** Runs `work` with an AbortSignal that the first Ctrl+C aborts. */
+  const stoppable = async (what: string, work: (signal: AbortSignal) => Promise<unknown>) => {
+    const controller = new AbortController();
+    const stop = () => {
+      console.log(`Stopping after the current ${what}. Press Ctrl+C again to quit at once.`);
+      controller.abort();
+    };
+    process.once('SIGINT', stop);
+    try {
+      await work(controller.signal);
+    } finally {
+      process.removeListener('SIGINT', stop);
+    }
+    return controller.signal.aborted;
+  };
 
   /** Prints a UserError's message without a stack trace; lets anything else crash loudly. */
   const friendly =
@@ -82,24 +93,34 @@ export function buildProgram(): Command {
     .description('Download Search Console history: 16 months the first time, then new days')
     .action(
       friendly(async () => {
-        const controller = new AbortController();
-        const stop = () => {
-          console.log('Stopping after the current day. Press Ctrl+C again to quit at once.');
-          controller.abort();
-        };
-        process.once('SIGINT', stop);
-        try {
-          await runSync({
+        const stopped = await stoppable('day', (signal) =>
+          runSync({ home: home(), report: (line) => console.log(line), signal }),
+        );
+        if (stopped) console.log('Stopped. Run "webmastery-console sync" again to continue.');
+      }),
+    );
+
+  program
+    .command('crawl')
+    .description('Crawl the site; continues an unfinished crawl unless --new is given')
+    .option('--new', 'start a new crawl instead of continuing an unfinished one')
+    .option('--max-pages <n>', 'page limit for a new crawl (default: crawl.maxPages)', (value) => {
+      const n = Number(value);
+      if (!Number.isInteger(n) || n < 1) throw new InvalidArgumentError('Give a whole number.');
+      return n;
+    })
+    .action(
+      friendly(async (options: { new?: boolean; maxPages?: number }) => {
+        const stopped = await stoppable('batch of pages', (signal) =>
+          runCrawl({
             home: home(),
             report: (line) => console.log(line),
-            signal: controller.signal,
-          });
-        } finally {
-          process.removeListener('SIGINT', stop);
-        }
-        if (controller.signal.aborted) {
-          console.log('Stopped. Run "webmastery-console sync" again to continue.');
-        }
+            signal,
+            fresh: options.new,
+            maxPages: options.maxPages,
+          }),
+        );
+        if (stopped) console.log('Stopped. Run "webmastery-console crawl" again to continue.');
       }),
     );
 

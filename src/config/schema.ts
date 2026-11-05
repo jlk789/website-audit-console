@@ -24,6 +24,8 @@ export const configSchema = z.object({
   crawl: z
     .object({
       maxPages: z.int().positive().default(10_000),
+      /** Requests in flight at once. Kept low to be gentle on the site. */
+      concurrency: z.int().min(1).max(16).default(2),
     })
     .prefault({}),
   gsc: gscConfigSchema.optional(),

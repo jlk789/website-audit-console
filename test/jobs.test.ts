@@ -138,10 +138,12 @@ describe('job runner', () => {
     expect(row.last_error).toBe('server said no');
   });
 
-  it('fails a job with no handler without retrying', async () => {
-    const id = enqueue(db, 'mystery');
-    expect(await runJobs(db, {})).toMatchObject({ failed: 1 });
-    expect(getJob(db, id)).toMatchObject({ state: 'failed', attempts: 1 });
+  it('leaves jobs it has no handler for in the queue', async () => {
+    const other = enqueue(db, 'sync');
+    const id = enqueue(db, 'count');
+    expect(await runJobs(db, { count: countTo(3) })).toMatchObject({ completed: 1, failed: 0 });
+    expect(getJob(db, other)).toMatchObject({ state: 'queued', attempts: 0 });
+    expect(getJob(db, id)?.state).toBe('completed');
   });
 
   it('puts a job back in the queue on a clean stop, without using an attempt', async () => {

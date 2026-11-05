@@ -36,7 +36,7 @@ describe('readConfig', () => {
     expect(readConfig(file)).toEqual({
       version: 1,
       site: { url: 'https://example.com/', brandTerms: [] },
-      crawl: { maxPages: 10_000 },
+      crawl: { maxPages: 10_000, concurrency: 2 },
     });
   });
 
@@ -44,7 +44,7 @@ describe('readConfig', () => {
     const config = {
       version: 1 as const,
       site: { url: 'https://example.com/', brandTerms: ['example'] },
-      crawl: { maxPages: 500 },
+      crawl: { maxPages: 500, concurrency: 2 },
     };
     writeConfig(file, config);
     expect(readConfig(file)).toEqual(config);
