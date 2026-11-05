@@ -2,6 +2,7 @@ import { Command, InvalidArgumentError } from 'commander';
 import open from 'open';
 import { UserError } from '../errors.js';
 import { version } from '../version.js';
+import { describeAudit, runAudit } from './commands/audit.js';
 import { runConnectGoogle } from './commands/connect.js';
 import { runCrawl } from './commands/crawl.js';
 import { runInit } from './commands/init.js';
@@ -9,7 +10,6 @@ import { runSync } from './commands/sync.js';
 
 /** Commands not built yet. Each one says which milestone it lands in. */
 const stubs = [
-  { name: 'audit', description: 'Run checks and rank findings', milestone: 'M4' },
   { name: 'mcp', description: 'Start the MCP server for Claude Desktop', milestone: 'M5' },
 ];
 
@@ -121,6 +121,21 @@ export function buildProgram(): Command {
           }),
         );
         if (stopped) console.log('Stopped. Run "webmastery-console crawl" again to continue.');
+      }),
+    );
+
+  program
+    .command('audit')
+    .description(
+      'Run every check on the latest crawl and Search Console data, and rank the findings',
+    )
+    .option('--all', 'list every finding, not just the top 20')
+    .action(
+      friendly(async (options: { all?: boolean }) => {
+        const result = await runAudit({ home: home() });
+        for (const line of describeAudit(result, options.all ? Infinity : 20)) {
+          console.log(line);
+        }
       }),
     );
 

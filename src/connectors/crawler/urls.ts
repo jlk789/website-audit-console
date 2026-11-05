@@ -64,7 +64,10 @@ export function toggleSlash(href: string): string | undefined {
   return url.href;
 }
 
+/** Start of the made-up path used by missingPageUrl. */
+export const MISSING_PAGE_PATH = '/webmastery-console-missing-page-';
+
 /** A URL that should not exist, to test whether the site answers 404 for missing pages. */
 export function missingPageUrl(siteUrl: string, crawlId: string): string {
-  return `${originOf(siteUrl)}/webmastery-console-missing-page-${crawlId.slice(0, 8)}`;
+  return `${originOf(siteUrl)}${MISSING_PAGE_PATH}${crawlId.slice(0, 8)}`;
 }

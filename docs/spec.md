@@ -73,6 +73,7 @@ Findings are ranked by value at stake per hour of effort, with a severity floor 
 - **Expected yield** starts from defaults per check type. The fix verification loop then recalibrates it from the user's own before/after results.
 - **Certainty** is high for deterministic checks and lower for judgement checks. It is also discounted when the anonymised-query share is high.
 - **Effort hours** are editable per finding, so teams can reflect their own stack.
+- **Ties** (common on small sites, where most findings are worth 0 clicks) go to the easier fix: expected yield × certainty ÷ effort, then the number of URLs affected.
 
 **Severity floor.** A short list of critical findings always sits above ranked findings: site-wide noindex, robots.txt blocking the site, a canonical pointing every page to one URL, an expired certificate, or a sudden indexed-page collapse.
 

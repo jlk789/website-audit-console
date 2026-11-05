@@ -14,7 +14,9 @@ const WINDOW = daysBetween(subtractMonths(LATEST, 16), LATEST);
 const now = () => new Date('2026-10-21T12:00:00Z');
 const quiet = () => {};
 
-describe('gsc sync', () => {
+// Each test backfills about 490 days (one has 60,000 rows in a day), which can
+// pass Vitest's 5-second default on a busy Windows CI runner.
+describe('gsc sync', { timeout: 30_000 }, () => {
   let temp: ReturnType<typeof makeTempHome>;
 
   beforeEach(() => {

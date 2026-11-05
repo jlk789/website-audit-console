@@ -300,6 +300,13 @@ function saveResponse(
   if (!parsed) return;
 
   saveLinks(db, crawlId, final.url, parsed.links);
+  // Visit canonical targets too, so checks can see whether they answer and where they point.
+  // Only from 200 pages: search engines ignore the canonical on an error page.
+  // (A canonical that is not a valid URL is stored as written, so normalise before using it.)
+  const canonical = parsed.canonical ? normalise(parsed.canonical) : undefined;
+  if (final.status === 200 && canonical && canonical !== final.url && inSite(canonical)) {
+    enqueueUrl(db, crawlId, canonical, 'canonical', null);
+  }
   // Follow links the way a search engine would: not from a nofollow page, not rel="nofollow".
   if (saysNofollow(parsed.metaRobots, final.xRobotsTag)) return;
   for (const link of parsed.links) {

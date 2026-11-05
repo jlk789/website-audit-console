@@ -70,15 +70,23 @@ function fixtureSite(path: string, origin: string): Route | undefined {
     case '/noindex':
       return { body: html({ head: '<meta name="robots" content="noindex">' }) };
     case '/canon':
-      return { body: html({ head: `<link rel="canonical" href="${origin}/about">` }) };
+      return { body: html({ head: `<link rel="canonical" href="${origin}/canonical-only">` }) };
+    case '/canonical-only':
+      return { body: html({ title: 'Only reached through a canonical' }) };
     case '/header-noindex':
       return { headers: { 'x-robots-tag': 'noindex' }, body: html({}) };
     case '/error':
       return { status: 500, body: 'Oops' };
     case '/contact':
       return { body: html({ title: 'Contact' }) };
+    case '/404-template':
+      return { body: html({ title: 'Page not found' }) };
     default:
-      return undefined;
+      // A 404 page whose template declares a canonical, as some static sites do.
+      return {
+        status: 404,
+        body: html({ head: `<link rel="canonical" href="${origin}/404-template">` }),
+      };
   }
 }
 
@@ -208,6 +216,21 @@ describe('crawl', () => {
     expect(probes.find((p) => p.url === `${site.origin}/about/`)?.status).toBe(404);
     // The https:// version of a plain-http test server cannot answer.
     expect(probes.find((p) => p.url.startsWith('https://'))?.status).toBeNull();
+  });
+
+  it('visits canonical targets that no link leads to', async () => {
+    await crawl();
+    expect(pages()['/canonical-only']).toMatchObject({ status: 200, depth: null });
+    expect(
+      query(`SELECT source FROM crawl_queue WHERE url = ?`, `${site.origin}/canonical-only`),
+    ).toEqual([{ source: 'canonical' }]);
+  });
+
+  it('ignores the canonical on an error page, as search engines do', async () => {
+    await crawl();
+    expect(pages()['/missing']).toMatchObject({ status: 404 });
+    expect(pages()['/404-template']).toBeUndefined();
+    expect(site.hits.get('/404-template')).toBeUndefined();
   });
 
   it('starts from pages with Search Console history', async () => {
