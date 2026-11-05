@@ -2,6 +2,22 @@
 
 A dated log of decisions that shape scope, schema, the check contract or how the project is run. Newest first. Each entry says what was decided and why.
 
+## 2026-11-05
+
+**M4 is built in three PRs:** M4a (contract changes, engine, `audit`, and the 12 redirects and hosts-and-404s checks), M4b (14 indexing checks), M4c (5 search-performance checks). Why: 31 checks in one PR is too much to review, and M4a proves the whole pipeline on its own. JK's choice.
+
+**Check contract changes.** (1) `CheckDefinition.thresholds` holds each check's default thresholds; config overrides them with `"checks": { "<id>": { "<name>": n } }`, and an unknown id or name stops the audit. Why: rule 7 put numbers in thresholds, but the contract had nowhere to declare their defaults. (2) `snapshot.propertyId`, and a rule to filter Search Console tables by it. Why: the example joined Search Console data with no property filter. (3) `ReadOnlyDb` and `EvidenceBuilder` are now defined. (4) A new capability, `brand-terms`. Why: the non-brand check can't work without brand terms and should be skipped with a reason, not return nothing. (5) Rule 2 now says the engine runs every evidence query (read-only, must run, at least one returns rows) and rule 4 says to use `metric: 'none'` without Search Console rather than claiming 0 clicks. JK approved all five.
+
+**Two indexing checks use stand-ins until URL Inspection data exists** (spec change). `indexing.indexed-pages-collapse`: the number of pages earning Search Console impressions falls sharply. `indexing.index-bloat-ratio`: indexable crawled pages compared with pages earning clicks. Why: v0.1 has no index counts; a labelled stand-in is more useful than a check that is always skipped. Both say in their description that they are stand-ins. JK's choice.
+
+**Ranking ties go to the easier fix** (spec change): expected yield × certainty ÷ effort, then the number of URLs affected, then check id and key. Why: priority is value × yield × certainty ÷ effort, and on a small site most findings are worth 0 clicks, so without a tie-breaker their order is arbitrary. JK's choice.
+
+**How runs are compared.** Each check's findings are compared with the latest run in which that check ran, by key. Open findings are stored as `new` or `persisting`; an issue open last time and gone now is stored in this run as `resolved`, with its old evidence (old crawls are kept, so it still runs). A skipped or failed check resolves nothing. `finding_lifecycle` records first and last seen, `fixed` when a run stops finding the issue, and `regressed_at` if it returns; verification waits for v0.2. Why: a run is self-describing, and disconnecting a source never "fixes" findings. JK approved.
+
+**The crawler also visits canonical targets** (queue source `canonical`). Why: on kupka.ca, 3 pages pointed their canonical at URLs the crawl never fetched, so canonical checks couldn't judge them.
+
+**Audits run as an `audit` job, saved in one step.** Checks read through a second, read-only SQLite connection, so a write throws. Why: M5's `run_audit` can queue it like sync and crawl, and an interrupted audit leaves nothing half-written.
+
 ## 2026-10-30
 
 **The crawler is our own: Node's `fetch` plus `cheerio`, not Crawlee** (replaces Crawlee in the stack decision below). Why: the plan requires every redirect hop recorded with its own status, and `fetch` with `redirect: 'manual'` gives each hop directly, while Crawlee's HTTP client follows redirects itself. Crawlee also keeps its request queue in its own folder on disk, a second store of state outside `data.db` and the job runner, which already passes a hard-kill resume test. And it brings a large dependency tree and fakes browser fingerprints by default, where we want an honest user agent. Cost: we write concurrency, timeouts and one retry ourselves (small). JS rendering, when it comes, uses Playwright directly. JK's choice.

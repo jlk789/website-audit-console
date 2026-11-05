@@ -37,6 +37,7 @@ describe('readConfig', () => {
       version: 1,
       site: { url: 'https://example.com/', brandTerms: [] },
       crawl: { maxPages: 10_000, concurrency: 2 },
+      checks: {},
     });
   });
 
@@ -45,6 +46,7 @@ describe('readConfig', () => {
       version: 1 as const,
       site: { url: 'https://example.com/', brandTerms: ['example'] },
       crawl: { maxPages: 500, concurrency: 2 },
+      checks: {},
     };
     writeConfig(file, config);
     expect(readConfig(file)).toEqual(config);

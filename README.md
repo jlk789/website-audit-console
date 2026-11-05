@@ -6,7 +6,7 @@ The npm package and command are called `webmastery-console`.
 
 ## Status
 
-Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync` and `crawl` work so far; the other commands say which milestone they arrive in.
+Pre-release. v0.1 is being built (see [docs/v0.1-plan.md](docs/v0.1-plan.md)). `init`, `connect google`, `sync`, `crawl` and `audit` work so far (`audit` runs 12 of the 31 v0.1 checks); `mcp` says which milestone it arrives in.
 
 ## Getting started
 
@@ -110,6 +110,28 @@ It behaves like a polite search engine crawler:
 It also sends a few test requests: your homepage on the other scheme and on the www or non-www host, a made-up URL (to see whether missing pages answer 404), and the slash and no-slash version of up to 20 top pages.
 
 Press **Ctrl+C** to stop after the current batch of pages; run `crawl` again to continue. Use `crawl --new` to abandon an unfinished crawl and start over. Each finished crawl is kept, so later versions can show what changed between crawls.
+
+## Auditing
+
+```bash
+webmastery-console audit
+```
+
+`audit` runs every check against the latest finished crawl and the last 28 days of Search Console data (ending at the newest synced day, because Search Console lags by a few days), then prints the findings in priority order. `audit --all` lists every finding instead of the top 20.
+
+- **Priority** is value at stake × expected yield × certainty ÷ effort hours. Value at stake is the page's clicks in the last 28 days, so a broken page with traffic outranks a tidy-up. Findings worth 0 clicks are ordered by how quick and likely the fix is.
+- **Severity floor.** Site-breaking problems are marked `!` and always listed first.
+- **New, persisting, resolved.** Each finding is compared with the last audit that ran the same check. A check that was skipped (for example because Search Console was disconnected) never marks anything resolved.
+- **Skipped checks.** A check that needs data you have not connected is listed as skipped, with what to do. Nothing errors.
+- **Evidence.** Every finding is saved with the queries that reproduce its numbers.
+
+Checks have thresholds you can change in `config.json`, for example:
+
+```json
+"checks": { "redirects.chain": { "minHops": 3 } }
+```
+
+An unknown check or threshold name stops the audit with a message listing the valid ones.
 
 ## Principles
 

@@ -4,7 +4,8 @@ import type { PageLink } from './parse.js';
 import { parseRobots } from './robots.js';
 import type { SitemapEntry, SitemapFile } from './sitemaps.js';
 
-export type QueueSource = 'start' | 'link' | 'redirect' | 'sitemap' | 'gsc' | 'probe';
+/** How a URL was found. 'canonical' was added in M4; the column has no CHECK list, so no migration. */
+export type QueueSource = 'start' | 'link' | 'redirect' | 'canonical' | 'sitemap' | 'gsc' | 'probe';
 
 export interface CrawlSettings {
   maxPages: number;

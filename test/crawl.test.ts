@@ -70,7 +70,9 @@ function fixtureSite(path: string, origin: string): Route | undefined {
     case '/noindex':
       return { body: html({ head: '<meta name="robots" content="noindex">' }) };
     case '/canon':
-      return { body: html({ head: `<link rel="canonical" href="${origin}/about">` }) };
+      return { body: html({ head: `<link rel="canonical" href="${origin}/canonical-only">` }) };
+    case '/canonical-only':
+      return { body: html({ title: 'Only reached through a canonical' }) };
     case '/header-noindex':
       return { headers: { 'x-robots-tag': 'noindex' }, body: html({}) };
     case '/error':
@@ -208,6 +210,14 @@ describe('crawl', () => {
     expect(probes.find((p) => p.url === `${site.origin}/about/`)?.status).toBe(404);
     // The https:// version of a plain-http test server cannot answer.
     expect(probes.find((p) => p.url.startsWith('https://'))?.status).toBeNull();
+  });
+
+  it('visits canonical targets that no link leads to', async () => {
+    await crawl();
+    expect(pages()['/canonical-only']).toMatchObject({ status: 200, depth: null });
+    expect(
+      query(`SELECT source FROM crawl_queue WHERE url = ?`, `${site.origin}/canonical-only`),
+    ).toEqual([{ source: 'canonical' }]);
   });
 
   it('starts from pages with Search Console history', async () => {

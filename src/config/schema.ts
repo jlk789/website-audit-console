@@ -29,6 +29,8 @@ export const configSchema = z.object({
     })
     .prefault({}),
   gsc: gscConfigSchema.optional(),
+  /** Threshold overrides per check, e.g. { "redirects.chain": { "minHops": 3 } }. */
+  checks: z.record(z.string(), z.record(z.string(), z.number())).default({}),
 });
 
 export type Config = z.infer<typeof configSchema>;
