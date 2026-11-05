@@ -14,7 +14,7 @@ A dated log of decisions that shape scope, schema, the check contract or how the
 
 **How runs are compared.** Each check's findings are compared with the latest run in which that check ran, by key. Open findings are stored as `new` or `persisting`; an issue open last time and gone now is stored in this run as `resolved`, with its old evidence (old crawls are kept, so it still runs). A skipped or failed check resolves nothing. `finding_lifecycle` records first and last seen, `fixed` when a run stops finding the issue, and `regressed_at` if it returns; verification waits for v0.2. Why: a run is self-describing, and disconnecting a source never "fixes" findings. JK approved.
 
-**The crawler also visits canonical targets** (queue source `canonical`). Why: on kupka.ca, 3 pages pointed their canonical at URLs the crawl never fetched, so canonical checks couldn't judge them.
+**The crawler also visits canonical targets** (queue source `canonical`), but only from pages that return 200. Why: on kupka.ca, 3 pages pointed their canonical at URLs the crawl never fetched, so canonical checks couldn't judge them. Search engines ignore the canonical on an error page; following it led the first real audit to a soft-404 finding for `/404`, a page nothing links to, via the canonical in kupka.ca's 404 template.
 
 **Audits run as an `audit` job, saved in one step.** Checks read through a second, read-only SQLite connection, so a write throws. Why: M5's `run_audit` can queue it like sync and crawl, and an interrupted audit leaves nothing half-written.
 

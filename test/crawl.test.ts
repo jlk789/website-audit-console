@@ -79,8 +79,14 @@ function fixtureSite(path: string, origin: string): Route | undefined {
       return { status: 500, body: 'Oops' };
     case '/contact':
       return { body: html({ title: 'Contact' }) };
+    case '/404-template':
+      return { body: html({ title: 'Page not found' }) };
     default:
-      return undefined;
+      // A 404 page whose template declares a canonical, as some static sites do.
+      return {
+        status: 404,
+        body: html({ head: `<link rel="canonical" href="${origin}/404-template">` }),
+      };
   }
 }
 
@@ -218,6 +224,13 @@ describe('crawl', () => {
     expect(
       query(`SELECT source FROM crawl_queue WHERE url = ?`, `${site.origin}/canonical-only`),
     ).toEqual([{ source: 'canonical' }]);
+  });
+
+  it('ignores the canonical on an error page, as search engines do', async () => {
+    await crawl();
+    expect(pages()['/missing']).toMatchObject({ status: 404 });
+    expect(pages()['/404-template']).toBeUndefined();
+    expect(site.hits.get('/404-template')).toBeUndefined();
   });
 
   it('starts from pages with Search Console history', async () => {
