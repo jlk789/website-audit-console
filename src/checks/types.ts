@@ -156,6 +156,13 @@ export interface FindingDraft {
   /** At least one. */
   evidence: EvidenceRef[];
   fix?: FixAsset;
+  /**
+   * Set when one change fixes many of this check's findings (a template, a
+   * sitemap setting). Findings of the check with the same fixGroup are one
+   * fix: plan_sprint costs them once, at the largest effort among them.
+   * Plain language naming the shared fix, e.g. "Add the /tags/ section to the sitemap".
+   */
+  fixGroup?: string;
 }
 
 export interface ValueAtStake {

@@ -72,6 +72,7 @@ export interface FindingRow {
   priority: number;
   severity_floor: number;
   fix: string | null;
+  fix_group: string | null;
 }
 
 /**

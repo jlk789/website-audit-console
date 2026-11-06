@@ -22,6 +22,7 @@ const finding = (checkId: string, key: string): EngineFinding => ({
   valueMethod: null,
   priority: 0,
   fix: null,
+  fixGroup: null,
   evidence: [],
 });
 

@@ -34,6 +34,7 @@ interface FindingRow {
   priority: number;
   severity_floor: number;
   fix: string | null;
+  fix_group: string | null;
 }
 
 /**
@@ -177,6 +178,7 @@ function fromRow(row: FindingRow): Omit<EngineFinding, 'evidence'> {
     priority: row.priority,
     severityFloor: row.severity_floor === 1,
     fix: row.fix === null ? null : JSON.parse(row.fix),
+    fixGroup: row.fix_group,
   };
 }
 
@@ -185,8 +187,8 @@ function insertFinding(db: Db, runId: string, f: EngineFinding): void {
     .prepare(
       `INSERT INTO findings (run_id, check_id, check_version, key, status, urls, summary, detail,
          reasoning, value_metric, value_amount, value_basis, value_method, certainty,
-         effort_hours, expected_yield, priority, severity_floor, fix)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         effort_hours, expected_yield, priority, severity_floor, fix, fix_group)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       runId,
@@ -208,6 +210,7 @@ function insertFinding(db: Db, runId: string, f: EngineFinding): void {
       f.priority,
       f.severityFloor ? 1 : 0,
       f.fix === null ? null : JSON.stringify(f.fix),
+      f.fixGroup,
     );
   const insert = db.prepare(
     `INSERT INTO finding_evidence (finding_id, ordinal, table_name, sql, params, label)
