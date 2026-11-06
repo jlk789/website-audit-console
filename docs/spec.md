@@ -142,20 +142,25 @@ Light and dark mode; works on a phone.
 
 ## MCP tools for Claude Desktop
 
-Tools are designed around the questions users ask, not around database tables. Each returns a compact answer with links to the supporting rows.
+Tools are designed around the questions users ask, not around database tables. Each returns a compact answer with links to the supporting rows. Text that third parties wrote (search queries, page content, and findings that quote them) is returned inside a marked untrusted-data block, so Claude treats it as data, never as instructions.
 
-| Tool | Answers |
-| --- | --- |
-| `whats_wrong` | What are the top findings right now, severity floor first? |
-| `plan_sprint` | What should I fix with N hours this sprint? |
-| `explain_drop` | Why did this page or folder lose traffic, with annotations and diffs? |
-| `what_changed` | What changed since the last crawl or a given date? |
-| `draft_fix` | Generate the 301 map, JSON-LD or link suggestions for a finding |
-| `mark_fixed` | Log a fix and start verification |
-| `did_it_work` | Before/after results for fixed findings |
-| `bot_activity` | How are Googlebot and AI bots crawling the site? |
-| `export_report` | Build the client HTML report |
-| `query_data` | Read-only SQL for anything the other tools miss |
+v0.1 ships the six tools marked ✓; the rest wait for the data they need.
+
+| Tool | v0.1 | Answers |
+| --- | --- | --- |
+| `whats_wrong` | ✓ | What are the top findings right now, severity floor first? |
+| `explain_finding` | ✓ | What exactly is this finding: its evidence rows, reasoning and drafted fix? |
+| `plan_sprint` | ✓ | What should I fix with N hours this sprint? |
+| `audit_status` | ✓ | How fresh is the data, and which checks were skipped and why? |
+| `run_audit` | ✓ | Refresh the data (sync, crawl, audit) in the background |
+| `explain_drop` | | Why did this page or folder lose traffic, with annotations and diffs? |
+| `what_changed` | | What changed since the last crawl or a given date? |
+| `draft_fix` | | Generate the 301 map, JSON-LD or link suggestions for a finding |
+| `mark_fixed` | | Log a fix and start verification |
+| `did_it_work` | | Before/after results for fixed findings |
+| `bot_activity` | | How are Googlebot and AI bots crawling the site? |
+| `export_report` | | Build the client HTML report |
+| `query_data` | ✓ | Read-only SQL for anything the other tools miss |
 
 ## Install, config and runtime
 

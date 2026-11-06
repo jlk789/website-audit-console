@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildProgram } from '../src/cli/program.js';
+import { makeTempHome } from './helpers/temp-home.js';
 
 describe('cli', () => {
   it('lists every v0.1 command in help', () => {
@@ -17,13 +18,17 @@ describe('cli', () => {
     expect(buildProgram().version()).toBe(pkg.version);
   });
 
-  it('fails clearly on a command that is not built yet', async () => {
-    const program = buildProgram()
-      .exitOverride()
-      .configureOutput({ writeErr: () => {} });
-    await expect(program.parseAsync(['mcp'], { from: 'user' })).rejects.toMatchObject({
-      exitCode: 1,
-      message: expect.stringContaining('milestone M5'),
-    });
+  it('refuses to start the MCP server before init, saying why', async () => {
+    const temp = makeTempHome();
+    try {
+      const program = buildProgram()
+        .exitOverride()
+        .configureOutput({ writeErr: () => {} });
+      await expect(
+        program.parseAsync(['--home', temp.home, 'mcp'], { from: 'user' }),
+      ).rejects.toMatchObject({ exitCode: 1, message: expect.stringContaining('init') });
+    } finally {
+      temp.cleanup();
+    }
   });
 });
