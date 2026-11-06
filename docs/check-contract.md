@@ -130,6 +130,11 @@ export interface FindingDraft {
   effortHours?: number;
   evidence: EvidenceRef[];     // at least one
   fix?: FixAsset;
+  /** Set when one change fixes many of this check's findings (a template, a
+   *  sitemap setting). Findings of the check with the same fixGroup are one
+   *  fix: plan_sprint costs them once, at the largest effort among them.
+   *  Plain language naming the shared fix, e.g. "Add the /tags/ section to the sitemap". */
+  fixGroup?: string;
 }
 
 export interface ValueAtStake {
@@ -171,6 +176,7 @@ export type FixAsset =
 9. **Thresholds are config.** Every tunable number is in `thresholds` (or `defaults`), never buried in logic. The config overrides a threshold with `"checks": { "<check id>": { "<name>": <number> } }`.
 10. **Filter by property.** Queries on Search Console tables filter by `ctx.snapshot.propertyId`; queries on crawl tables filter by `ctx.snapshot.crawlId`.
 11. **One fixture test minimum.** Each check proves it fires on a broken fixture and stays silent on a clean one.
+12. **Group findings that share one fix.** When a single change fixes several findings (one template, one sitemap setting), give them the same `fixGroup` so effort is counted once. Keep one finding per URL anyway: keys, evidence and lifecycle stay per page. Only group when the shared fix is likely, not merely possible, and say what it is in the `fixGroup` text.
 
 ## Example
 

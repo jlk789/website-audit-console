@@ -57,6 +57,8 @@ export const brokenSite: WebRoutes = (url) => {
           '/bulk-1',
           '/bulk-2',
           '/bulk-3',
+          '/tags/',
+          '/tags/a/',
         ]),
       });
     case '/good':
@@ -80,11 +82,14 @@ export const brokenSite: WebRoutes = (url) => {
     // missing-canonical
     case '/no-canonical':
       return page('/no-canonical', { canonical: null });
-    // indexable-not-in-sitemap (and, with the bulk pages, index-bloat-ratio)
+    // indexable-not-in-sitemap (and, with the bulk pages, index-bloat-ratio);
+    // the two /tags/ pages are one section, so one shared fix
     case '/not-in-sitemap':
     case '/bulk-1':
     case '/bulk-2':
     case '/bulk-3':
+    case '/tags/':
+    case '/tags/a/':
       return page(path);
     default:
       return undefined;

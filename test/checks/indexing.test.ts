@@ -49,7 +49,10 @@ const expected: Record<string, { on: Fixture[]; keys: string[] }> = {
   'indexing.missing-canonical': { on: ['broken'], keys: [`${S}/no-canonical`] },
   'indexing.sitemap-non-200': { on: ['broken'], keys: [`${S}/redirected`, `${S}/gone`] },
   'indexing.sitemap-non-indexable': { on: ['broken'], keys: [`${S}/noindexed`, `${S}/canon-away`] },
-  'indexing.indexable-not-in-sitemap': { on: ['broken'], keys: [`${S}/not-in-sitemap`] },
+  'indexing.indexable-not-in-sitemap': {
+    on: ['broken'],
+    keys: [`${S}/not-in-sitemap`, `${S}/tags/`, `${S}/tags/a/`],
+  },
   'indexing.sitemap-url-robots-blocked': { on: ['broken'], keys: [`${S}/private/page`] },
   'indexing.index-bloat-ratio': { on: ['broken'], keys: ['site'] },
 };
@@ -143,12 +146,24 @@ describe('indexing checks', () => {
     );
   });
 
+  it('groups pages missing from one sitemap section into one shared fix', () => {
+    const groups = Object.fromEntries(
+      results('broken')
+        .findings.filter((f) => f.checkId === 'indexing.indexable-not-in-sitemap')
+        .map((f) => [f.key, f.fixGroup]),
+    );
+    expect(groups[`${S}/tags/`]).toBe('Add the /tags/ section to the sitemap');
+    expect(groups[`${S}/tags/a/`]).toBe('Add the /tags/ section to the sitemap');
+    // Alone in its section: fixed on its own.
+    expect(groups[`${S}/not-in-sitemap`]).toBeNull();
+  });
+
   it('applies the config override to index-bloat-ratio', () => {
     const bloat = results('broken').findings.find(
       (f) => f.checkId === 'indexing.index-bloat-ratio',
     );
     expect(bloat?.summary).toMatch(
-      /^7 pages are indexable, but only 2 earned a click .* \(3\.5 to 1\)\.$/,
+      /^9 pages are indexable, but only 2 earned a click .* \(4\.5 to 1\)\.$/,
     );
   });
 });

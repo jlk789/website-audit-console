@@ -51,6 +51,7 @@ export function brief(f: FindingRow) {
     priority: round(f.priority),
     certainty: round(f.certainty),
     effortHours: f.effort_hours,
+    ...(f.fix_group ? { sharedFix: f.fix_group } : {}),
   };
 }
 

@@ -28,6 +28,8 @@ export interface EngineFinding extends Scored {
   valueMethod: string | null;
   priority: number;
   fix: FixAsset | null;
+  /** Findings of one check with the same fixGroup share one fix. */
+  fixGroup: string | null;
   evidence: EvidenceRef[];
 }
 
@@ -126,6 +128,9 @@ function toFinding(
   if (value.basis === 'estimated' && !value.method) {
     throw problem('an estimated value must say how it was estimated');
   }
+  if (draft.fixGroup !== undefined && !draft.fixGroup.trim()) {
+    throw problem('a fix group must say what the shared fix is');
+  }
 
   // Every evidence query must be read-only and run; at least one must return rows.
   let rows = 0;
@@ -171,6 +176,7 @@ function toFinding(
     valueMethod: value.method ?? null,
     priority: priority(scored),
     fix: draft.fix ?? null,
+    fixGroup: draft.fixGroup ?? null,
     evidence: draft.evidence,
   };
 }

@@ -157,7 +157,7 @@ Until the package is published, point at your local build instead: `"command": "
 | --- | --- |
 | `whats_wrong` | "What's wrong with my site?" Top findings, severity floor first |
 | `explain_finding` | "Tell me more about that 404." Evidence rows, reasoning and the drafted fix |
-| `plan_sprint` | "I have 3 hours. What should I fix?" |
+| `plan_sprint` | "I have 3 hours. What should I fix?" Findings one change fixes, like a whole section missing from the sitemap, count once |
 | `audit_status` | "How fresh is the data?" Including skipped checks and why |
 | `run_audit` | "Refresh the audit." Sync, crawl and audit in the background; ask for the status to follow it |
 | `query_data` | Anything else, as one read-only SQL query. Writes are refused |

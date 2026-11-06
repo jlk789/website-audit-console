@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { BackgroundRun } from '../src/mcp/background.js';
 import { createServer } from '../src/mcp/server.js';
 import type { FindingRow } from '../src/mcp/site.js';
-import { fillHours } from '../src/mcp/tools/plan-sprint.js';
+import { fillHours, groupFixes, type Fix } from '../src/mcp/tools/plan-sprint.js';
 import { auditHome } from './helpers/audit-home.js';
 import { fakeWeb } from './helpers/fake-web.js';
 import * as perf from './fixtures/gsc/search-performance.js';
@@ -223,12 +223,38 @@ describe('MCP server', () => {
       expect(picks.reduce((sum, p) => sum + p.effortHours, 0)).toBeLessThanOrEqual(1);
     });
 
+    const row = (id: number, effort: number, group: string | null = null) =>
+      ({ id, check_id: 'indexing.x', effort_hours: effort, fix_group: group }) as FindingRow;
+    const ids = (fixes: Fix[]) => fixes.map((fix) => fix.findings.map((f) => f.id));
+
     it('skips a finding too big for the hours left, and takes smaller ones after it', () => {
-      const row = (id: number, effort: number) => ({ id, effort_hours: effort }) as FindingRow;
-      const { picked, tooBig, used } = fillHours([row(1, 1), row(2, 4), row(3, 0.5)], 2);
-      expect(picked.map((f) => f.id)).toEqual([1, 3]);
-      expect(tooBig.map((f) => f.id)).toEqual([2]);
+      const { picked, tooBig, used } = fillHours(
+        groupFixes([row(1, 1), row(2, 4), row(3, 0.5)]),
+        2,
+      );
+      expect(ids(picked)).toEqual([[1], [3]]);
+      expect(ids(tooBig)).toEqual([[2]]);
       expect(used).toBe(1.5);
+    });
+
+    it('costs findings that share a fix once, at the rank of the top one', () => {
+      const fixes = groupFixes([
+        row(1, 0.1, 'Add /tags/'),
+        row(2, 0.25),
+        row(3, 0.1, 'Add /tags/'),
+        row(4, 0.2, 'Add /tags/'),
+        row(5, 0.25),
+      ]);
+      expect(ids(fixes)).toEqual([[1, 3, 4], [2], [5]]);
+      expect(fixes[0]?.effortHours).toBe(0.2);
+      const { picked, used } = fillHours(fixes, 0.7);
+      expect(ids(picked)).toEqual([[1, 3, 4], [2], [5]]);
+      expect(used).toBeCloseTo(0.7);
+    });
+
+    it('keeps the same group text of different checks apart', () => {
+      const other = { ...row(2, 0.1, 'Add /tags/'), check_id: 'indexing.y' } as FindingRow;
+      expect(ids(groupFixes([row(1, 0.1, 'Add /tags/'), other]))).toEqual([[1], [2]]);
     });
   });
 
